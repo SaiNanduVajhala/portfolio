@@ -217,7 +217,8 @@ function App() {
         { text: "1. Emotion-Aware Multimodal Voice Assistant (FastAPI, WebSockets)", type: "success" },
         { text: "2. CrewAI Trading Agent (Autonomous summarizer)", type: "success" },
         { text: "3. lexiRead (Accessibility engine for dyslexia)", type: "success" },
-        { text: "4. Market Mood Analysis (Crypto Fear & Greed analyzer)", type: "success" }
+        { text: "4. Market Mood Trading Analysis (Crypto Fear & Greed analyzer)", type: "success" },
+        { text: "5. Semantic Search Engine (NLP semantic vector search)", type: "success" }
       );
     } else if (cmd === "skills") {
       newHistory.push({ text: "Languages: Python, Java, R, C | Tech: React, FastAPI, Node.js, CrewAI | DB: PostgreSQL, MongoDB, MySQL", type: "success" });
@@ -291,8 +292,8 @@ function App() {
               <motion.div variants={fadeInUp} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                 <a href="#projects" className="btn btn-premium-glow">View Projects</a>
                 <a
-                  href="./Vajhala_Sai_Nandu_Resume.pdf"
-                  download="Vajhala_Sai_Nandu_Resume.pdf"
+                  href="./Sai_Nandu_Resume.pdf"
+                  download="Sai_Nandu_Resume.pdf"
                   className="btn-neon-border"
                 >
                   <span style={{ marginRight: '8px' }}>📥</span>
