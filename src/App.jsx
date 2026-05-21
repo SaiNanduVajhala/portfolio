@@ -983,16 +983,6 @@ function App() {
             <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="social-btn-uiverse linkedin">
               <span style={{ fontSize: '20px' }}>💼</span> LinkedIn
             </a>
-            <button
-              className="terminal-button-hud"
-              onClick={() => {
-                const el = document.getElementById("terminal");
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '50%', display: 'inline-block' }}></span>
-              portfolio_shell:~$ connect --active
-            </button>
           </motion.div>
 
           <p style={{ color: 'var(--text-secondary)' }}>&copy; {new Date().getFullYear()} Sai Nandu Vajhala. Designed with purpose.</p>
