@@ -92,11 +92,17 @@ const slideVariants = {
 };
 
 function App() {
+  const [theme, setTheme] = useState("light");
   const [activeSector, setActiveSector] = useState("hero");
   const [filter, setFilter] = useState("all");
   const [cardFlipped, setCardFlipped] = useState(false);
   const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
   const [slideDirection, setSlideDirection] = useState(0); // -1 for left, 1 for right
+
+  // Apply theme to document root
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     setCurrentProjectIndex(0);
@@ -288,6 +294,17 @@ function App() {
             <button onClick={() => setActiveSector("skills")} className={`hud-nav-btn ${activeSector === "skills" ? "hud-nav-btn-active" : ""}`}>Skills</button>
             <button onClick={() => setActiveSector("credentials")} className={`hud-nav-btn ${activeSector === "credentials" ? "hud-nav-btn-active" : ""}`}>Credentials</button>
             <button onClick={() => setActiveSector("contact")} className={`hud-nav-btn ${activeSector === "contact" ? "hud-nav-btn-active" : ""}`}>Contact</button>
+            <div className="theme-toggle-wrapper">
+              <div className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle Theme">
+                <div className="theme-switch-knob">
+                  {theme === 'dark' ? (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+                  ) : (
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+                  )}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </nav>
@@ -302,7 +319,7 @@ function App() {
           <directionalLight position={[5, 5, 5]} intensity={1.2} />
 
           {/* Background galaxy environment & connecting neural pathways */}
-          <SpaceEnvironment sectorCoordinates={sectorCoordinates} />
+          <SpaceEnvironment sectorCoordinates={sectorCoordinates} theme={theme} />
 
           {/* Smooth camera flight transitions */}
           <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} />
@@ -311,7 +328,7 @@ function App() {
           <group position={sectorCoordinates.hero}>
             {/* Neural sphere rendered as native 3D object — always alive, no nested Canvas */}
             <group position={[-3, 0.2, -2]} scale={1.8}>
-              <NeuralNetwork count={50} />
+              <NeuralNetwork count={50} theme={theme} />
             </group>
             <Html
               position={[0, -0.5, 0]}
@@ -544,7 +561,6 @@ function App() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: 'rgba(22, 27, 38, 0.75)',
                       border: '1px solid var(--border)',
                       backdropFilter: 'blur(10px)',
                       color: 'var(--text-primary)',
@@ -574,7 +590,6 @@ function App() {
                             display: 'flex',
                             flexDirection: 'column',
                             justifyContent: 'space-between',
-                            background: 'linear-gradient(145deg, rgba(22, 27, 38, 0.8) 0%, rgba(13, 17, 23, 0.9) 100%)',
                             backdropFilter: 'blur(12px)',
                             border: '1px solid var(--border)',
                             borderRadius: '16px',
@@ -587,7 +602,7 @@ function App() {
                             <div>
                               {/* Centered header design */}
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', textAlign: 'center' }}>
-                                <span className="tag" style={{ textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.08em', color: 'var(--accent)', border: '1px solid rgba(23, 178, 106, 0.25)', background: 'rgba(23, 178, 106, 0.05)', alignSelf: 'center', padding: '3px 8px' }}>
+                                <span className="tag" style={{ textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.08em', alignSelf: 'center', padding: '3px 8px' }}>
                                   {filteredProjects[currentProjectIndex].category}
                                 </span>
                                 <h3 style={{ fontSize: '1.35rem', fontFamily: 'Space Grotesk', margin: 0, color: 'var(--text-primary)', lineHeight: 1.3, textAlign: 'center' }}>
@@ -603,7 +618,7 @@ function App() {
                               {/* Centered tag items */}
                               <div className="card-tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', margin: '0.75rem 0 1.25rem 0' }}>
                                 {filteredProjects[currentProjectIndex].tags.map((tag, idx) => (
-                                  <span key={idx} className="tag" style={{ fontSize: '0.8rem', background: 'rgba(52, 64, 84, 0.25)', color: 'var(--text-tertiary)' }}>{tag}</span>
+                                  <span key={idx} className="tag" style={{ fontSize: '0.8rem' }}>{tag}</span>
                                 ))}
                               </div>
 
@@ -648,7 +663,6 @@ function App() {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: 'rgba(22, 27, 38, 0.75)',
                       border: '1px solid var(--border)',
                       backdropFilter: 'blur(10px)',
                       color: 'var(--text-primary)',
@@ -868,7 +882,7 @@ function App() {
           {/* 🛸 SECTOR: CREDENTIALS [10, 7, -8] */}
           <group position={sectorCoordinates.credentials}>
             <Html
-              position={[0, -1.1, 0]}
+              position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
               className="r3f-html-wrapper"
@@ -894,7 +908,7 @@ function App() {
                     <div className="credential-badge-img-wrapper" style={{ width: '64px', height: '64px' }}>
                       <img src="https://images.credly.com/images/000655a5-3837-4c38-b906-2eb9c059ab36/linkedin_thumb_blob" alt="Google" style={{ width: '100%' }} />
                     </div>
-                    <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Google Cloud AI Agent Engineer</h3>
+                    <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Engineer AI Agents with Agent Development Kit (ADK)</h3>
                     <a href="https://www.credly.com/badges/4be3d2ac-f8bd-44ad-bcec-91d0d86c1ca9" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
                   </div>
 
@@ -903,7 +917,7 @@ function App() {
                       <img src={deloitteSimImg} alt="Deloitte Certificate" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Deloitte Data Analytics Job Simulation</h3>
-                    <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                    <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Certificate</a>
                   </div>
                 </div>
               </div>
