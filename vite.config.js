@@ -22,6 +22,12 @@ export default defineConfig({
           if (id.includes('node_modules/framer-motion')) {
             return 'motion';
           }
+          if (id.includes('node_modules/three')) {
+            return 'three';
+          }
+          if (id.includes('node_modules/@react-three')) {
+            return 'r3f';
+          }
         },
       },
     },

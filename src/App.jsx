@@ -1,6 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Canvas } from '@react-three/fiber';
+import { Html } from '@react-three/drei';
 import './index.css';
+
+// Import 3D WebGL components
+import CameraController from './components/CameraController';
+import SpaceEnvironment from './components/SpaceEnvironment';
+import NeuralNetwork from './components/NeuralSphere';
+import deloitteSimImg from './assets/deloitte_simulation.png';
+
+// Predefined 3D coordinates for each sector in the Latent Space
+const sectorCoordinates = {
+  hero: [0, 0, 0],
+  about: [-12, 5, -8],
+  projects: [12, -5, -8],
+  terminal: [0, -12, -10],
+  skills: [-10, -7, -7],
+  credentials: [10, 7, -8],
+  contact: [0, 10, -6]
+};
 
 // Project data structure with filter categories
 const projectsData = [
@@ -46,10 +65,43 @@ const projectsData = [
   }
 ];
 
+const slideVariants = {
+  enter: (direction) => ({
+    x: direction > 0 ? 160 : direction < 0 ? -160 : 0,
+    opacity: 0,
+    scale: 0.96
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.3,
+      ease: [0.4, 0, 0.2, 1]
+    }
+  },
+  exit: (direction) => ({
+    x: direction < 0 ? 160 : direction > 0 ? -160 : 0,
+    opacity: 0,
+    scale: 0.96,
+    transition: {
+      duration: 0.25,
+      ease: [0.4, 0, 1, 1]
+    }
+  })
+};
 
 function App() {
+  const [activeSector, setActiveSector] = useState("hero");
   const [filter, setFilter] = useState("all");
-  const [activeSection, setActiveSection] = useState("hero");
+  const [cardFlipped, setCardFlipped] = useState(false);
+  const [currentProjectIndex, setCurrentProjectIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(0); // -1 for left, 1 for right
+
+  useEffect(() => {
+    setCurrentProjectIndex(0);
+    setSlideDirection(0);
+  }, [filter]);
 
   // Live GitHub Stats State with cached fallbacks
   const [githubStats, setGithubStats] = useState({
@@ -122,13 +174,13 @@ function App() {
         setGithubStats({
           repos: profileData ? profileData.public_repos : 12,
           stars: totalStars || 0,
-          commits: 101, // From actual GitHub statistics
+          commits: 101,
           prs: 4,
           issues: 2,
           contributions: 121,
           currentStreak: 0,
           longestStreak: 5,
-          grade: totalStars > 5 ? "A" : "C", // Grade calculations
+          grade: totalStars > 5 ? "A" : "C",
           languages: languages.length > 0 ? languages : [
             { name: "Python", percentage: 55.60, color: "#3572A5" },
             { name: "TypeScript", percentage: 19.25, color: "#3178C6" },
@@ -170,29 +222,6 @@ function App() {
   };
 
   const spotlight = useSpotlight();
-
-  // Scroll Spy logic to dynamically highlight Navbar items
-  useEffect(() => {
-    const handleScroll = () => {
-      const sections = ["hero", "about", "projects", "terminal", "skills", "credentials", "contact"];
-      const scrollPosition = window.scrollY + window.innerHeight / 3;
-
-      for (const section of sections) {
-        const el = document.getElementById(section);
-        if (el) {
-          const top = el.offsetTop;
-          const height = el.offsetHeight;
-          if (scrollPosition >= top && scrollPosition < top + height) {
-            setActiveSection(section);
-            break;
-          }
-        }
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Terminal Input logic
   const handleTerminalSubmit = (e) => {
@@ -241,753 +270,750 @@ function App() {
     }
   }, [terminalHistory]);
 
-  const fadeInUp = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
-  };
-
-  const staggerContainer = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: { staggerChildren: 0.15 }
-    }
-  };
-
   const filteredProjects = filter === "all"
     ? projectsData
     : projectsData.filter(p => p.category === filter);
 
   return (
     <>
-      {/* Navigation */}
-      <nav>
-        <div className="container nav-content">
-          <a href="#" className="text-accent" style={{ fontWeight: 700, fontSize: '1.25rem', fontFamily: 'Space Grotesk' }}>SV.</a>
-          <div className="nav-links">
-            <a href="#about" className={activeSection === "about" ? "nav-link-active" : ""}>About</a>
-            <a href="#projects" className={activeSection === "projects" ? "nav-link-active" : ""}>Projects</a>
-            <a href="#terminal" className={activeSection === "terminal" ? "nav-link-active" : ""}>Sandbox</a>
-            <a href="#skills" className={activeSection === "skills" ? "nav-link-active" : ""}>Skills</a>
-            <a href="#credentials" className={activeSection === "credentials" ? "nav-link-active" : ""}>Credentials</a>
-            <a href="#contact" className={activeSection === "contact" ? "nav-link-active" : ""}>Contact</a>
+      {/* 1. Ultra-Premium Glassmorphic HUD Navbar */}
+      <nav className="hud-nav-bar">
+        <div className="container hud-nav-content">
+          <button onClick={() => setActiveSector("hero")} className="text-accent" style={{ background: 'none', border: 'none', fontWeight: 700, fontSize: '1.25rem', fontFamily: 'Space Grotesk', cursor: 'pointer' }}>SV.</button>
+          <div className="hud-nav-links">
+            <button onClick={() => setActiveSector("hero")} className={`hud-nav-btn ${activeSector === "hero" ? "hud-nav-btn-active" : ""}`}>Home</button>
+            <button onClick={() => setActiveSector("about")} className={`hud-nav-btn ${activeSector === "about" ? "hud-nav-btn-active" : ""}`}>About</button>
+            <button onClick={() => setActiveSector("projects")} className={`hud-nav-btn ${activeSector === "projects" ? "hud-nav-btn-active" : ""}`}>Projects</button>
+            <button onClick={() => setActiveSector("terminal")} className={`hud-nav-btn ${activeSector === "terminal" ? "hud-nav-btn-active" : ""}`}>Sandbox</button>
+            <button onClick={() => setActiveSector("skills")} className={`hud-nav-btn ${activeSector === "skills" ? "hud-nav-btn-active" : ""}`}>Skills</button>
+            <button onClick={() => setActiveSector("credentials")} className={`hud-nav-btn ${activeSector === "credentials" ? "hud-nav-btn-active" : ""}`}>Credentials</button>
+            <button onClick={() => setActiveSector("contact")} className={`hud-nav-btn ${activeSector === "contact" ? "hud-nav-btn-active" : ""}`}>Contact</button>
           </div>
         </div>
       </nav>
 
-      <main>
-        {/* Hero Section */}
-        <section className="section container" id="hero">
-          <div className="hero-split">
-            {/* Left: text content */}
-            <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
-              <motion.h1 variants={fadeInUp} className="heading-lg">
-                Sai Nandu Vajhala.<br />
-                <span className="text-accent">AI/ML Engineer.</span>
-              </motion.h1>
-              <motion.p variants={fadeInUp} className="body-lg" style={{ marginBottom: '2rem' }}>
-                BTech student in Artificial Intelligence &amp; Machine Learning.
-                Building intelligent agents, real-time multimodal systems, and data-driven solutions.
-              </motion.p>
-              <motion.div variants={fadeInUp} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <a href="#projects" className="btn btn-premium-glow">View Projects</a>
-                <a
-                  href="./Sai_Nandu_Resume.pdf"
-                  download="Sai_Nandu_Resume.pdf"
-                  className="btn-neon-border"
-                >
-                  <span style={{ marginRight: '8px' }}>📥</span>
-                  Download Resume
-                </a>
-              </motion.div>
-            </motion.div>
+      {/* 2. Full-Screen WebGL Canvas Universe */}
+      <div className="canvas-container-3d">
+        <Canvas
+          camera={{ position: [0, 0, 6], fof: 45 }}
+          gl={{ antialias: true, alpha: true }}
+        >
+          <ambientLight intensity={0.6} />
+          <directionalLight position={[5, 5, 5]} intensity={1.2} />
 
-            {/* Right: 3D flip ID card */}
-            <motion.div
-              initial={{ opacity: 0, x: 40 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.7, delay: 0.4, ease: 'easeOut' }}
+          {/* Background galaxy environment & connecting neural pathways */}
+          <SpaceEnvironment sectorCoordinates={sectorCoordinates} />
+
+          {/* Smooth camera flight transitions */}
+          <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} />
+
+          {/* 🛸 SECTOR: HERO [0, 0, 0] */}
+          <group position={sectorCoordinates.hero}>
+            {/* Neural sphere rendered as native 3D object — always alive, no nested Canvas */}
+            <group position={[-3, 0.2, -2]} scale={1.8}>
+              <NeuralNetwork count={50} />
+            </group>
+            <Html
+              position={[0, -0.5, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'hero' ? 1 : 0,
+                visibility: activeSector === 'hero' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'hero' ? 'auto' : 'none'
+              }}
             >
-              <div className="id-card-wrapper">
-                <div className="id-card">
+              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '3rem', width: '960px', alignItems: 'center' }}>
+                <div style={{ position: 'relative', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
-                  {/* ── FRONT ── */}
-                  <div className="id-card-face id-card-front">
-                    {/* Green header strip */}
-                    <div className="id-card-front-top">
-                      <span className="id-card-front-top-label">Portfolio ID</span>
-                      <span className="id-card-front-top-company">AI/ML Engineering</span>
-                    </div>
-
-                    {/* Floating avatar circle */}
-                    <div className="id-card-avatar">SN</div>
-
-                    {/* Name / role block */}
-                    <div className="id-card-front-body">
-                      <span className="id-card-name">Sai Nandu Vajhala</span>
-                      <span className="id-card-role">AI/ML Engineer</span>
-                      <div className="id-card-divider" />
-                      <span className="id-card-dept">
-                        BTech · Sreyas Institute<br />
-                        Hyderabad, India
-                      </span>
-
-                      {/* Decorative barcode */}
-                      <div className="id-card-barcode">
-                        {[3, 5, 2, 7, 4, 6, 3, 5, 2, 4, 6, 3, 7, 5, 2, 4, 6, 3, 5, 4].map((h, i) => (
-                          <span key={i} style={{ width: i % 3 === 0 ? '3px' : '1.5px', height: `${h * 3}px` }} />
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* ── BACK ── */}
-                  <div className="id-card-face id-card-back">
-                    {/* Live indicator header */}
-                    <div className="id-card-back-header">
-                      <span className="id-card-back-header-dot" />
-                      <span className="id-card-back-header-label">Contact Details</span>
-                    </div>
-
-                    {/* Email */}
-                    <div className="id-card-contact-row">
-                      <div className="id-card-contact-icon">✉️</div>
-                      <div className="id-card-contact-info">
-                        <span className="id-card-contact-label">Email</span>
-                        <span className="id-card-contact-value">
-                          <a href="mailto:vajhalasainandu@gmail.com">vajhalasainandu@gmail.com</a>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Location */}
-                    <div className="id-card-contact-row">
-                      <div className="id-card-contact-icon">📍</div>
-                      <div className="id-card-contact-info">
-                        <span className="id-card-contact-label">Location</span>
-                        <span className="id-card-contact-value">Hyderabad, India — 500047</span>
-                      </div>
-                    </div>
-
-                    {/* GitHub */}
-                    <div className="id-card-contact-row">
-                      <div className="id-card-contact-icon">💻</div>
-                      <div className="id-card-contact-info">
-                        <span className="id-card-contact-label">GitHub</span>
-                        <span className="id-card-contact-value">
-                          <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer">
-                            SaiNanduVajhala
-                          </a>
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* LinkedIn */}
-                    <div className="id-card-contact-row">
-                      <div className="id-card-contact-icon">💼</div>
-                      <div className="id-card-contact-info">
-                        <span className="id-card-contact-label">LinkedIn</span>
-                        <span className="id-card-contact-value">
-                          <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer">
-                            vajhala-sai-nandu
-                          </a>
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="id-card-back-footer">
-                      <span className="id-card-back-footer-hint">Open to opportunities</span>
-                      <span style={{ width: '6px', height: '6px', background: 'var(--accent)', borderRadius: '50%', boxShadow: '0 0 6px rgba(23,178,106,0.8)' }} />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Hover hint */}
-                <div className="id-card-hint">
-                  <span>↕</span> hover to flip
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        </section>
-
-        {/* About Section */}
-        <section className="section container" id="about">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <h2 className="heading-md">About Me</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '4rem' }}>
-              <div>
-                <p className="text-secondary" style={{ marginBottom: '1.25rem', fontSize: '1.125rem' }}>
-                  I am a motivated student pursuing a BTech in Artificial Intelligence and Machine Learning at Sreyas Institute of Engineering and Technology.
-                </p>
-                <p className="text-secondary" style={{ fontSize: '1.125rem', marginBottom: '1.5rem' }}>
-                  I'm passionate about emerging technologies, actively building side projects ranging from CrewAI financial agents to real-time multimodal voice assistants.
-                </p>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                  <div className="tag" style={{ color: 'var(--text-primary)' }}>OCI AI Foundations Associate</div>
-                  <div className="tag" style={{ color: 'var(--text-primary)' }}>Google Cloud AI Agent Engineer</div>
-                </div>
-              </div>
-              <div>
-                <h3 style={{ marginBottom: '1rem', fontFamily: 'Space Grotesk' }}>Education</h3>
-                <div style={{ marginBottom: '1.5rem', borderLeft: '2px solid var(--border)', paddingLeft: '1rem' }}>
-                  <h4 style={{ color: 'var(--accent)' }}>BTech in AI & ML</h4>
-                  <p className="text-secondary">Sreyas Institute of Engineering and Technology (2024 - 2027)</p>
-                  <p className="text-secondary" style={{ fontSize: '0.875rem' }}>CGPA: 7.2/10</p>
-                </div>
-                <div style={{ marginBottom: '1.5rem', borderLeft: '2px solid var(--border)', paddingLeft: '1rem' }}>
-                  <h4 style={{ color: 'var(--text-primary)' }}>Diploma in EEE</h4>
-                  <p className="text-secondary">Samskruti College of Engineering and Technology (2021 - 2024)</p>
-                  <p className="text-secondary" style={{ fontSize: '0.875rem' }}>CGPA: 7.4/10</p>
-                </div>
-                <div style={{ borderLeft: '2px solid var(--border)', paddingLeft: '1rem' }}>
-                  <h4 style={{ color: 'var(--text-secondary)' }}>SR Digi High School</h4>
-                  <p className="text-secondary">Secondary Education (2020 - 2021)</p>
-                  <p className="text-secondary" style={{ fontSize: '0.875rem' }}>CGPA: 9.8/10</p>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </section>
-
-        {/* Projects Section */}
-        <section className="section container" id="projects">
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="heading-md">
-            Featured Projects
-          </motion.h2>
-
-          {/* Dynamic Category Filter Controls */}
-          <div className="filter-container">
-            {["all", "ai-agents", "data-science", "accessibility"].map((cat) => {
-              const label = cat === "all" ? "All" : cat === "ai-agents" ? "AI Agents" : cat === "data-science" ? "Data Science" : "Accessibility";
-              const isActive = filter === cat;
-              return (
-                <button
-                  key={cat}
-                  className={`filter-btn ${isActive ? "active" : ""}`}
-                  onClick={() => setFilter(cat)}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="activeFilterPill"
-                      className="filter-active-pill"
-                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
-                    />
-                  )}
-                  {label}
-                </button>
-              );
-            })}
-          </div>
-
-          <motion.div
-            className="projects-grid"
-            layout
-          >
-            <AnimatePresence mode="popLayout">
-              {filteredProjects.map((project) => (
-                <motion.div
-                  key={project.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3 }}
-                  className="spotlight-card"
-                  {...spotlight}
-                >
-                  <div className="spotlight-glow" style={{ top: 'var(--mouse-y)', left: 'var(--mouse-x)' }}></div>
-                  <div className="spotlight-content">
-                    <h3>{project.title}</h3>
-                    <p className="text-secondary" style={{ marginTop: '1rem' }}>
-                      {project.description}
+                  <div style={{ position: 'relative', zIndex: 2 }}>
+                    <h1 className="heading-lg" style={{ margin: 0, lineHeight: 1.1 }}>
+                      Sai Nandu Vajhala.<br />
+                      <span className="text-accent">AI/ML Engineer.</span>
+                    </h1>
+                    <p className="body-lg" style={{ margin: '1.5rem 0 2rem 0', fontSize: '1.2rem' }}>
+                      BTech student in Artificial Intelligence &amp; Machine Learning.<br />
+                      Building intelligent agents, real-time systems, and data-driven automation.
                     </p>
-                    <div className="card-tags">
-                      {project.tags.map((tag, idx) => (
-                        <span key={idx} className="tag">{tag}</span>
-                      ))}
-                    </div>
-                    <div className="card-links">
-                      <a href={project.github} target="_blank" rel="noreferrer" className="btn btn-secondary" style={{ padding: '0.5rem 1rem' }}>
-                        <span style={{ fontSize: '18px' }}>💻</span> Code
+                    <div style={{ display: 'flex', gap: '1.25rem' }}>
+                      <button onClick={() => setActiveSector("projects")} className="btn btn-premium-glow">View Projects</button>
+                      <a href="./Sai_Nandu_Resume.pdf" download="Sai_Nandu_Resume.pdf" className="btn-neon-border">
+                        <span style={{ marginRight: '8px' }}>📥</span> Download Resume
                       </a>
                     </div>
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-          </motion.div>
-        </section>
-
-        {/* Interactive Terminal simulator sandbox */}
-        <section className="section container terminal-section" id="terminal">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <h2 className="heading-md">Interactive Sandbox</h2>
-            <p className="text-secondary" style={{ marginBottom: '2rem', maxWidth: '600px' }}>
-              Run commands inside this mock terminal simulation sandbox.
-            </p>
-            <div className="terminal-container">
-              <div className="terminal-header">
-                <div className="terminal-dots">
-                  <div className="dot dot-red"></div>
-                  <div className="dot dot-yellow"></div>
-                  <div className="dot dot-green"></div>
                 </div>
-                <div className="terminal-title">bash - portfolio_shell</div>
-                <div></div>
-              </div>
-              <div className="terminal-body" ref={terminalBodyRef}>
-                {terminalHistory.map((item, index) => (
-                  <div key={index} className={`terminal-line ${item.type}`}>
-                    {item.text}
-                  </div>
-                ))}
-                <form onSubmit={handleTerminalSubmit} className="terminal-input-line">
-                  <span className="terminal-prompt">sainandu@portfolio:~$</span>
-                  <div style={{ display: 'flex', alignItems: 'center', flex: 1, position: 'relative' }}>
-                    {terminalInput === "" && <span className="terminal-cursor"></span>}
-                    <input
-                      type="text"
-                      value={terminalInput}
-                      onChange={(e) => setTerminalInput(e.target.value)}
-                      className="terminal-input"
-                      placeholder=""
-                      autoComplete="off"
-                      style={{ caretColor: 'transparent', paddingLeft: terminalInput === "" ? '13px' : '0' }}
-                    />
-                  </div>
-                </form>
-              </div>
-            </div>
-          </motion.div>
-        </section>
 
-        {/* Skills Section */}
-        <section className="section container" id="skills">
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="heading-md">
-            💻 Tech Stack & Tools
-          </motion.h2>
+                <div className="id-card-3d-container" style={{ transform: 'translateX(50px)' }}>
 
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={staggerContainer}
-            className="skills-category-container"
-          >
-            {/* Category 1: AI/ML & Data Science */}
-            <div className="skills-category-box">
-              <h3>🧠 AI/ML & Data Science</h3>
-              <div className="skills-grid-uiverse">
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#EE4C2C', '--accent-color-glow': 'rgba(238, 76, 44, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EE4C2C' }}></span>PyTorch</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#FF6F00', '--accent-color-glow': 'rgba(255, 111, 0, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#FF6F00' }}></span>TensorFlow</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#17B26A', '--accent-color-glow': 'rgba(23, 178, 106, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#17B26A' }}></span>CrewAI</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#3776AB', '--accent-color-glow': 'rgba(55, 118, 171, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3776AB' }}></span>Python</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#D00000', '--accent-color-glow': 'rgba(208, 0, 0, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#D00000' }}></span>Keras</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#F7931E', '--accent-color-glow': 'rgba(247, 147, 30, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F7931E' }}></span>Scikit-Learn</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#150458', '--accent-color-glow': 'rgba(21, 4, 88, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#150458' }}></span>Pandas</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#013243', '--accent-color-glow': 'rgba(1, 50, 67, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#013243' }}></span>NumPy</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#8CAAE6', '--accent-color-glow': 'rgba(140, 170, 230, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#8CAAE6' }}></span>SciPy</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#3F4F75', '--accent-color-glow': 'rgba(63, 79, 117, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3F4F75' }}></span>Plotly</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#EE4C2C', '--accent-color-glow': 'rgba(238, 76, 44, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#EE4C2C' }}></span>Matplotlib</span>
-              </div>
-            </div>
-
-            {/* Category 2: Languages & Core */}
-            <div className="skills-category-box">
-              <h3>💻 Languages & Core</h3>
-              <div className="skills-grid-uiverse">
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#ED8B00', '--accent-color-glow': 'rgba(237, 139, 0, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#ED8B00' }}></span>Java</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#F7DF1E', '--accent-color-glow': 'rgba(247, 223, 30, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F7DF1E' }}></span>JavaScript</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#276DC3', '--accent-color-glow': 'rgba(39, 109, 195, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#276DC3' }}></span>R</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#A8B9CC', '--accent-color-glow': 'rgba(168, 185, 204, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#A8B9CC' }}></span>C Programming</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#0064a5', '--accent-color-glow': 'rgba(0, 100, 165, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0064a5' }}></span>PL/pgSQL</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#E34F26', '--accent-color-glow': 'rgba(227, 79, 38, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#E34F26' }}></span>HTML5 / Markdown</span>
-              </div>
-            </div>
-
-            {/* Category 3: Frameworks & Backends */}
-            <div className="skills-category-box">
-              <h3>⚡ Frameworks & Web Tools</h3>
-              <div className="skills-grid-uiverse">
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#61DAFB', '--accent-color-glow': 'rgba(97, 218, 251, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#61DAFB' }}></span>React.js</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#009688', '--accent-color-glow': 'rgba(0, 150, 136, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#009688' }}></span>FastAPI</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#339933', '--accent-color-glow': 'rgba(51, 153, 51, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#339933' }}></span>Node.js</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#475467', '--accent-color-glow': 'rgba(71, 84, 103, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#475467' }}></span>Express.js</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#5D6D7E', '--accent-color-glow': 'rgba(93, 109, 126, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#5D6D7E' }}></span>Flask</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#092E20', '--accent-color-glow': 'rgba(9, 46, 32, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#092E20' }}></span>Django</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#E23237', '--accent-color-glow': 'rgba(226, 50, 55, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#E23237' }}></span>AngularJS</span>
-              </div>
-            </div>
-
-            {/* Category 4: Databases & DevOps */}
-            <div className="skills-category-box">
-              <h3>🗄️ Databases & Tooling</h3>
-              <div className="skills-grid-uiverse">
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#4169E1', '--accent-color-glow': 'rgba(65, 105, 225, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4169E1' }}></span>PostgreSQL</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#3ECF8E', '--accent-color-glow': 'rgba(62, 207, 142, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#3ECF8E' }}></span>Supabase</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#47A248', '--accent-color-glow': 'rgba(71, 162, 72, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#47A248' }}></span>MongoDB</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#4479A1', '--accent-color-glow': 'rgba(68, 121, 161, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#4479A1' }}></span>MySQL</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#DC382D', '--accent-color-glow': 'rgba(220, 56, 45, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#DC382D' }}></span>Redis</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#F05032', '--accent-color-glow': 'rgba(240, 80, 50, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#F05032' }}></span>Git / GitHub</span>
-                <span className="skill-card-uiverse" style={{ '--accent-color': '#007ACC', '--accent-color-glow': 'rgba(0, 122, 204, 0.25)' }}><span style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#007ACC' }}></span>VS Code / Jupyter</span>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* GitHub Stats Sub-Section */}
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="heading-md" style={{ marginTop: '3rem' }}>
-            📊 GitHub Stats & Contributions
-          </motion.h2>
-
-          <motion.div
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-            variants={fadeInUp}
-            style={{ display: 'flex', flexDirection: 'column', gap: '2rem', marginTop: '2rem' }}
-          >
-            {/* Contribution chart, color themed to match the Untitled UI Green accent #17B26A */}
-            <div style={{ padding: '1.5rem', backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden' }}>
-              <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', color: 'var(--text-tertiary)' }}>GitHub Contribution Grid</h3>
-              <img
-                src="https://ghchart.rshah.org/17B26A/SaiNanduVajhala"
-                alt="Sai Nandu's GitHub Contribution Grid"
-                style={{ width: '100%', height: 'auto', display: 'block' }}
-              />
-            </div>
-
-            {/* Readme Stats, Streak & Languages Panels (Matching screenshot visual fidelity) */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2rem' }}>
-
-              {/* Custom GitHub Stats Card */}
-              <div style={{
-                padding: '2rem',
-                backgroundColor: '#0D1117',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                color: '#c9d1d9',
-                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                position: 'relative',
-                overflow: 'hidden',
-                boxShadow: 'var(--shadow-lg)',
-                minHeight: '180px'
-              }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f0f6fc', margin: '0 0 1.25rem 0', borderBottom: '1px solid #21262d', paddingBottom: '0.75rem' }}>
-                  Sai Nandu's GitHub Stats
-                </h3>
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.9rem' }}>
-                    <div><span style={{ color: '#8b949e' }}>Total Stars Earned:</span> <strong style={{ color: '#f0f6fc', marginLeft: '5px' }}>{githubStats.stars}</strong></div>
-                    <div><span style={{ color: '#8b949e' }}>Total Commits:</span> <strong style={{ color: '#f0f6fc', marginLeft: '5px' }}>{githubStats.commits}</strong></div>
-                    <div><span style={{ color: '#8b949e' }}>Total PRs:</span> <strong style={{ color: '#f0f6fc', marginLeft: '5px' }}>{githubStats.prs}</strong></div>
-                    <div><span style={{ color: '#8b949e' }}>Total Issues:</span> <strong style={{ color: '#f0f6fc', marginLeft: '5px' }}>{githubStats.issues}</strong></div>
-                    <div><span style={{ color: '#8b949e' }}>Contributed to (last year):</span> <strong style={{ color: '#f0f6fc', marginLeft: '5px' }}>0</strong></div>
-                  </div>
-
-                  {/* Circular letter grade container */}
-                  <div style={{
-                    position: 'relative',
-                    width: '80px',
-                    height: '80px',
-                    borderRadius: '50%',
-                    border: '4px solid #30363d',
-                    borderTopColor: '#58a6ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: 'rotate(-45deg)'
-                  }}>
-                    <span style={{
-                      fontSize: '2rem',
-                      fontWeight: '800',
-                      color: '#f0f6fc',
-                      transform: 'rotate(45deg)'
-                    }}>{githubStats.grade}</span>
+                  {/* Premium flip card — uses scaleX squeeze animation (CSS 3D backface-visibility broken in R3F Html) */}
+                  <div className="id-card-wrapper" style={{ zIndex: 2 }} onMouseEnter={() => setCardFlipped(true)} onMouseLeave={() => setCardFlipped(false)}>
+                    <div className="id-card">
+                      <AnimatePresence>
+                        {!cardFlipped ? (
+                          <motion.div
+                            key="front"
+                            className="id-card-face id-card-front"
+                            initial={{ scaleX: 0, opacity: 0.5 }}
+                            animate={{ scaleX: 1, opacity: 1 }}
+                            exit={{ scaleX: 0, opacity: 0.5 }}
+                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                            style={{ originX: 0.5 }}
+                          >
+                            <div className="id-card-front-top">
+                              <span className="id-card-front-top-label">Portfolio ID</span>
+                              <span className="id-card-front-top-company">AI/ML Engineering</span>
+                            </div>
+                            <div className="id-card-avatar">SN</div>
+                            <div className="id-card-front-body">
+                              <span className="id-card-name">Sai Nandu Vajhala</span>
+                              <span className="id-card-role">AI/ML Engineer</span>
+                              <div className="id-card-divider" />
+                              <span className="id-card-dept">
+                                BTech · Sreyas Institute<br />Hyderabad, India
+                              </span>
+                              <div className="id-card-barcode">
+                                {[3, 5, 2, 7, 4, 6, 3, 5, 2, 4, 6, 3, 7, 5, 2, 4, 6, 3, 5, 4].map((h, i) => (
+                                  <span key={i} style={{ width: i % 3 === 0 ? '3px' : '1.5px', height: `${h * 3}px` }} />
+                                ))}
+                              </div>
+                            </div>
+                          </motion.div>
+                        ) : (
+                          <motion.div
+                            key="back"
+                            className="id-card-face id-card-back"
+                            initial={{ scaleX: 0, opacity: 0.5 }}
+                            animate={{ scaleX: 1, opacity: 1 }}
+                            exit={{ scaleX: 0, opacity: 0.5 }}
+                            transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                            style={{ originX: 0.5 }}
+                          >
+                            <div className="id-card-back-header">
+                              <span className="id-card-back-header-dot" />
+                              <span className="id-card-back-header-label">Contact Details</span>
+                            </div>
+                            <div className="id-card-contact-row">
+                              <div className="id-card-contact-icon">✉️</div>
+                              <div className="id-card-contact-info">
+                                <span className="id-card-contact-label">Email</span>
+                                <span className="id-card-contact-value">
+                                  <a href="mailto:vajhalasainandu@gmail.com">vajhalasainandu@gmail.com</a>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="id-card-contact-row">
+                              <div className="id-card-contact-icon">📍</div>
+                              <div className="id-card-contact-info">
+                                <span className="id-card-contact-label">Location</span>
+                                <span className="id-card-contact-value">Hyderabad, India</span>
+                              </div>
+                            </div>
+                            <div className="id-card-contact-row">
+                              <div className="id-card-contact-icon">🔗</div>
+                              <div className="id-card-contact-info">
+                                <span className="id-card-contact-label">LinkedIn</span>
+                                <span className="id-card-contact-value">
+                                  <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer">vajhala-sai-nandu</a>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="id-card-contact-row">
+                              <div className="id-card-contact-icon">🐙</div>
+                              <div className="id-card-contact-info">
+                                <span className="id-card-contact-label">GitHub</span>
+                                <span className="id-card-contact-value">
+                                  <a href="https://github.com/SaiNanduVajhala/" target="_blank" rel="noreferrer">SaiNanduVajhala</a>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="id-card-contact-row">
+                              <div className="id-card-contact-icon">📊</div>
+                              <div className="id-card-contact-info">
+                                <span className="id-card-contact-label">Kaggle</span>
+                                <span className="id-card-contact-value">
+                                  <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer">vajhalasainandu</a>
+                                </span>
+                              </div>
+                            </div>
+                            <div className="id-card-back-footer">
+                              <span className="id-card-back-footer-hint">Open to opportunities</span>
+                              <span style={{ width: '6px', height: '6px', background: 'var(--accent)', borderRadius: '50%', boxShadow: '0 0 6px rgba(23,178,106,0.8)' }} />
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                    <div className="id-card-hint">
+                      <span>↕</span> hover to flip
+                    </div>
                   </div>
                 </div>
               </div>
+            </Html>
+          </group>
 
-              {/* Custom GitHub Streak Card */}
-              <div style={{
-                padding: '2rem',
-                backgroundColor: '#0D1117',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                color: '#c9d1d9',
-                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                boxShadow: 'var(--shadow-lg)',
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                alignItems: 'center',
-                textAlign: 'center',
-                gap: '0.75rem',
-                minHeight: '180px'
-              }}>
-                {/* Total Contributions */}
-                <div style={{ borderRight: '1px solid #21262d', paddingRight: '5px' }}>
-                  <h4 style={{ fontSize: '2.2rem', fontWeight: '800', margin: '0 0 5px 0', color: '#f0f6fc' }}>{githubStats.contributions}</h4>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '600', color: '#c9d1d9', marginBottom: '2px' }}>Total Contributions</div>
-                  <div style={{ fontSize: '0.7rem', color: '#8b949e' }}>Aug 23, 2024 - Present</div>
+          {/* 🧬 SECTOR: ABOUT [-12, 5, -8] */}
+          <group position={sectorCoordinates.about}>
+            <Html
+              position={[0, -1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'about' ? 1 : 0,
+                visibility: activeSector === 'about' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'about' ? 'auto' : 'none'
+              }}
+            >
+              <div className="glass-hud-card">
+                <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>About Me</h2>
+                <p className="text-secondary" style={{ marginBottom: '1.25rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
+                  I am a highly motivated student pursuing a BTech in Artificial Intelligence and Machine Learning at <b>Sreyas Institute of Engineering and Technology.</b>
+                </p>
+                <p className="text-secondary" style={{ fontSize: '1.05rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
+                  I'm passionate about emerging cognitive paradigms, actively constructing autonomous agent networks, real-time voice architectures, and high-dimensional semantic search engines.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
+                  <span className="tag" style={{ color: 'var(--text-primary)' }}>OCI AI Foundations Associate</span>
+                  <span className="tag" style={{ color: 'var(--text-primary)' }}>Google Cloud AI Agent Engineer</span>
                 </div>
 
-                {/* Current Streak */}
-                <div style={{ borderRight: '1px solid #21262d', paddingRight: '5px', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  {/* Glowing orange streak circle */}
-                  <div style={{
-                    position: 'relative',
-                    width: '64px',
-                    height: '64px',
-                    borderRadius: '50%',
-                    border: '3px solid #f77e1e',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginBottom: '8px',
-                    boxShadow: '0 0 10px rgba(247, 126, 30, 0.25)',
-                    background: 'radial-gradient(circle, rgba(247, 126, 30, 0.05) 0%, transparent 70%)'
-                  }}>
-                    <span style={{ fontSize: '1rem', position: 'absolute', top: '-11px' }}>🔥</span>
-                    <span style={{ fontSize: '1.6rem', fontWeight: '800', color: '#f77e1e' }}>{githubStats.currentStreak}</span>
-                  </div>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '600', color: '#f77e1e', marginBottom: '2px' }}>Current Streak</div>
-                  <div style={{ fontSize: '0.7rem', color: '#8b949e' }}>May 20</div>
-                </div>
-
-                {/* Longest Streak */}
-                <div>
-                  <h4 style={{ fontSize: '2.2rem', fontWeight: '800', margin: '0 0 5px 0', color: '#f0f6fc' }}>{githubStats.longestStreak}</h4>
-                  <div style={{ fontSize: '0.8rem', fontWeight: '600', color: '#c9d1d9', marginBottom: '2px' }}>Longest Streak</div>
-                  <div style={{ fontSize: '0.7rem', color: '#8b949e' }}>May 7 - May 11</div>
+                <h3 style={{ marginBottom: '1rem', fontFamily: 'Space Grotesk', fontSize: '1.25rem' }}>Academic Path</h3>
+                <div style={{ borderLeft: '2px solid var(--border)', paddingLeft: '1rem' }}>
+                  <h4 style={{ color: 'var(--accent)' }}>BTech in AI & ML</h4>
+                  <p className="text-secondary" style={{ fontSize: '0.9rem' }}>Sreyas Institute (2024 - 2027) · CGPA: 7.2/10</p>
                 </div>
               </div>
+            </Html>
+          </group>
 
-              {/* Custom Top Languages Card (Matching screenshot styling exactly) */}
-              <div style={{
-                padding: '2rem',
-                backgroundColor: '#0D1117',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                color: '#c9d1d9',
-                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif',
-                boxShadow: 'var(--shadow-lg)'
-              }}>
-                <h3 style={{ fontSize: '1.05rem', fontWeight: 600, color: '#f0f6fc', margin: '0 0 1.25rem 0', borderBottom: '1px solid #21262d', paddingBottom: '0.75rem' }}>
-                  Most Used Languages
-                </h3>
+          {/* 🛸 SECTOR: PROJECTS [12, -5, -8] */}
+          <group position={sectorCoordinates.projects}>
+            <Html
+              position={[0, -1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'projects' ? 1 : 0,
+                visibility: activeSector === 'projects' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'projects' ? 'auto' : 'none'
+              }}
+            >
+              <div style={{ width: '920px' }} onWheel={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                  <h2 className="heading-md" style={{ margin: 0, fontSize: '2rem' }}>Featured Projects</h2>
+                  <div className="filter-container" style={{ margin: 0 }}>
+                    {["all", "ai-agents", "data-science", "accessibility"].map((cat) => {
+                      const label = cat === "all" ? "All" : cat === "ai-agents" ? "AI Agents" : cat === "data-science" ? "Data Science" : "Accessibility";
+                      const isActive = filter === cat;
+                      return (
+                        <button key={cat} className={`filter-btn ${isActive ? "active" : ""}`} onClick={() => setFilter(cat)}>
+                          {isActive && <motion.span layoutId="activeFilterPill" className="filter-active-pill" transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-                {/* Stacked Multi-color segment progress bar */}
-                <div style={{
-                  display: 'flex',
-                  width: '100%',
-                  height: '10px',
-                  backgroundColor: '#21262d',
-                  borderRadius: '5px',
-                  overflow: 'hidden',
-                  marginBottom: '1.5rem'
-                }}>
-                  {githubStats.languages.map((lang, idx) => (
-                    <div
+                {/* Relative Wrapper to mathematically lock arrow buttons to absolute 50% height of the card */}
+                <div style={{ position: 'relative', width: '600px', height: '390px', margin: '2.5rem auto 1rem auto' }}>
+
+                  {/* Left Arrow Button (Absolute Centered Outside Card) */}
+                  <button
+                    onClick={() => {
+                      setSlideDirection(-1);
+                      setCurrentProjectIndex((prev) => (prev === 0 ? filteredProjects.length - 1 : prev - 1));
+                    }}
+                    className="btn btn-premium-glow"
+                    style={{
+                      position: 'absolute',
+                      left: '-70px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      borderRadius: '50%',
+                      width: '44px',
+                      height: '44px',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(22, 27, 38, 0.75)',
+                      border: '1px solid var(--border)',
+                      backdropFilter: 'blur(10px)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      zIndex: 20
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
+                  </button>
+
+                  {/* Slider Container holding the animated spotlight card */}
+                  <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', borderRadius: '16px' }}>
+                    <AnimatePresence mode="wait" custom={slideDirection}>
+                      {filteredProjects[currentProjectIndex] && (
+                        <motion.div
+                          key={filteredProjects[currentProjectIndex].id}
+                          custom={slideDirection}
+                          variants={slideVariants}
+                          initial="enter"
+                          animate="center"
+                          exit="exit"
+                          className="spotlight-card"
+                          {...spotlight}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            justifyContent: 'space-between',
+                            background: 'linear-gradient(145deg, rgba(22, 27, 38, 0.8) 0%, rgba(13, 17, 23, 0.9) 100%)',
+                            backdropFilter: 'blur(12px)',
+                            border: '1px solid var(--border)',
+                            borderRadius: '16px',
+                            boxShadow: 'var(--shadow-lg)'
+                          }}
+                        >
+                          <div className="spotlight-glow" style={{ top: 'var(--mouse-y)', left: 'var(--mouse-x)' }}></div>
+                          {/* Centered card padding and alignment */}
+                          <div className="spotlight-content" style={{ padding: '2rem 2.2rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                            <div>
+                              {/* Centered header design */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', textAlign: 'center' }}>
+                                <span className="tag" style={{ textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.08em', color: 'var(--accent)', border: '1px solid rgba(23, 178, 106, 0.25)', background: 'rgba(23, 178, 106, 0.05)', alignSelf: 'center', padding: '3px 8px' }}>
+                                  {filteredProjects[currentProjectIndex].category}
+                                </span>
+                                <h3 style={{ fontSize: '1.35rem', fontFamily: 'Space Grotesk', margin: 0, color: 'var(--text-primary)', lineHeight: 1.3, textAlign: 'center' }}>
+                                  {filteredProjects[currentProjectIndex].title}
+                                </h3>
+                              </div>
+                              <p className="text-secondary custom-scrollbar" style={{ fontSize: '1.02rem', lineHeight: 1.65, marginTop: '0.5rem', height: '120px', overflowY: 'auto', paddingRight: '6px', textAlign: 'center' }}>
+                                {filteredProjects[currentProjectIndex].description}
+                              </p>
+                            </div>
+
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                              {/* Centered tag items */}
+                              <div className="card-tags" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', justifyContent: 'center', margin: '0.75rem 0 1.25rem 0' }}>
+                                {filteredProjects[currentProjectIndex].tags.map((tag, idx) => (
+                                  <span key={idx} className="tag" style={{ fontSize: '0.8rem', background: 'rgba(52, 64, 84, 0.25)', color: 'var(--text-tertiary)' }}>{tag}</span>
+                                ))}
+                              </div>
+
+                              {/* Symmetrical footer centering */}
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.6rem' }}>
+                                <a
+                                  href={filteredProjects[currentProjectIndex].github}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="btn btn-premium-glow"
+                                  style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
+                                >
+                                  💻 View Code
+                                </a>
+                                <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
+                                  Project {currentProjectIndex + 1} of {filteredProjects.length}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Right Arrow Button (Absolute Centered Outside Card) */}
+                  <button
+                    onClick={() => {
+                      setSlideDirection(1);
+                      setCurrentProjectIndex((prev) => (prev === filteredProjects.length - 1 ? 0 : prev + 1));
+                    }}
+                    className="btn btn-premium-glow"
+                    style={{
+                      position: 'absolute',
+                      right: '-70px',
+                      top: '50%',
+                      transform: 'translateY(-50%)',
+                      borderRadius: '50%',
+                      width: '44px',
+                      height: '44px',
+                      padding: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: 'rgba(22, 27, 38, 0.75)',
+                      border: '1px solid var(--border)',
+                      backdropFilter: 'blur(10px)',
+                      color: 'var(--text-primary)',
+                      cursor: 'pointer',
+                      zIndex: 20
+                    }}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
+                  </button>
+                </div>
+
+                {/* Dot Indicators */}
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+                  {filteredProjects.map((_, idx) => (
+                    <button
                       key={idx}
+                      onClick={() => {
+                        setSlideDirection(idx > currentProjectIndex ? 1 : -1);
+                        setCurrentProjectIndex(idx);
+                      }}
                       style={{
-                        width: `${lang.percentage}%`,
-                        height: '100%',
-                        backgroundColor: lang.color
+                        width: idx === currentProjectIndex ? '24px' : '8px',
+                        height: '8px',
+                        borderRadius: '4px',
+                        background: idx === currentProjectIndex ? 'var(--accent)' : 'rgba(52, 64, 84, 0.5)',
+                        border: 'none',
+                        cursor: 'pointer',
+                        transition: 'all 0.3s ease',
+                        boxShadow: idx === currentProjectIndex ? '0 0 8px var(--accent)' : 'none'
                       }}
                     />
                   ))}
                 </div>
+              </div>
+            </Html>
+          </group>
 
-                {/* Languages Bullet Grid */}
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
-                  gap: '1rem',
-                  fontSize: '0.85rem'
-                }}>
-                  {githubStats.languages.map((lang, idx) => (
-                    <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{
-                        width: '10px',
-                        height: '10px',
-                        borderRadius: '50%',
-                        backgroundColor: lang.color,
-                        display: 'inline-block'
-                      }}></span>
-                      <span style={{ color: '#c9d1d9', fontWeight: 500 }}>{lang.name}</span>
-                      <span style={{ color: '#8b949e', marginLeft: '5px' }}>{lang.percentage}%</span>
+          {/* 🛸 SECTOR: SANDBOX (TERMINAL) [0, -12, -10] */}
+          <group position={sectorCoordinates.terminal}>
+            <Html
+              position={[0, -1.1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'terminal' ? 1 : 0,
+                visibility: activeSector === 'terminal' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'terminal' ? 'auto' : 'none'
+              }}
+            >
+              <div className="glass-hud-card" style={{ width: '720px' }}>
+                <h2 className="heading-md" style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Interactive Sandbox</h2>
+                <p className="text-secondary" style={{ marginBottom: '1.5rem', fontSize: '1rem' }}>Run commands inside this real-time portfolio console environment.</p>
+
+                <div className="terminal-container" style={{ height: '360px' }}>
+                  <div className="terminal-header">
+                    <div className="terminal-dots">
+                      <div className="dot dot-red"></div>
+                      <div className="dot dot-yellow"></div>
+                      <div className="dot dot-green"></div>
                     </div>
-                  ))}
+                    <div className="terminal-title">bash - latent_shell</div>
+                    <div></div>
+                  </div>
+                  <div className="terminal-body" ref={terminalBodyRef} style={{ height: '315px', fontSize: '0.88rem' }}>
+                    {terminalHistory.map((item, index) => (
+                      <div key={index} className={`terminal-line ${item.type}`}>{item.text}</div>
+                    ))}
+                    <form onSubmit={handleTerminalSubmit} className="terminal-input-line">
+                      <span className="terminal-prompt" style={{ fontSize: '0.88rem' }}>sainandu@latent-space:~$</span>
+                      <div style={{ display: 'flex', alignItems: 'center', flex: 1, position: 'relative' }}>
+                        {terminalInput === "" && <span className="terminal-cursor" style={{ height: '14px' }}></span>}
+                        <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} className="terminal-input" autoComplete="off" style={{ caretColor: 'transparent', fontSize: '0.88rem' }} />
+                      </div>
+                    </form>
+                  </div>
                 </div>
               </div>
+            </Html>
+          </group>
 
-            </div>
-          </motion.div>
-        </section>
+          {/* 🛸 SECTOR: SKILLS [-10, -7, -7] */}
+          <group position={sectorCoordinates.skills}>
+            <Html
+              position={[0, -1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'skills' ? 1 : 0,
+                visibility: activeSector === 'skills' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'skills' ? 'auto' : 'none'
+              }}
+            >
+              <div style={{ width: '920px' }}>
+                <h2 className="heading-md" style={{ marginBottom: '2rem', fontSize: '2rem' }}>Tech Stack & Dynamic Activity</h2>
 
-        {/* Credentials Section */}
-        <section className="section container" id="credentials" style={{ minHeight: 'auto', padding: '6rem 0' }}>
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <h2 className="heading-md">Credentials & Certifications</h2>
-            <p className="text-secondary" style={{ marginBottom: '3rem', maxWidth: '600px', fontSize: '1.125rem' }}>
-              Verified academic achievements, professional certifications, and industry simulations.
-            </p>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '2.5rem' }}>
-
-              {/* Oracle Certification Card */}
-              <div className="credential-card oracle-card">
-                <div>
-                  <div className="credential-card-header">
-                    <span style={{ fontSize: '0.8rem', color: '#8b949e', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Professional Certification</span>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      backgroundColor: 'rgba(23, 178, 106, 0.1)',
-                      color: 'var(--accent)',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '50%' }}></span> Verified
-                    </span>
+                <div className="skills-category-container" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.25rem' }}>
+                  <div className="skills-category-box" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>🧠 AI/ML & Data Science</h3>
+                    <div className="skills-grid-uiverse">
+                      {[
+                        { name: "Python", color: "#3776AB" },
+                        { name: "PyTorch", color: "#EE4C2C" },
+                        { name: "TensorFlow", color: "#FF6F00" },
+                        { name: "CrewAI", color: "#FF4B4B" },
+                        { name: "Scikit-Learn", color: "#F7931E" },
+                        { name: "Keras", color: "#D00000" },
+                        { name: "NumPy", color: "#013243" },
+                        { name: "Pandas", color: "#150458" },
+                        { name: "SciPy", color: "#8CAAE6" },
+                        { name: "Matplotlib", color: "#11557C" },
+                        { name: "Plotly", color: "#3F4F75" },
+                        { name: "R", color: "#276FDB" }
+                      ].map((s, i) => (
+                        <span
+                          key={i}
+                          className="skill-card-uiverse"
+                          style={{
+                            '--accent-color': s.color,
+                            '--accent-color-glow': `${s.color}33`
+                          }}
+                        >
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: s.color,
+                            boxShadow: `0 0 6px ${s.color}`,
+                            display: 'inline-block'
+                          }} />
+                          {s.name}
+                        </span>
+                      ))}
+                    </div>
                   </div>
 
-                  <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', margin: '0.5rem 0 1.5rem 0' }}>
-                    <div className="credential-badge-img-wrapper" style={{ boxShadow: '0 4px 20px rgba(23, 178, 106, 0.15)' }}>
-                      <img
-                        src="https://brm-workforce.oracle.com/pdf/certview/images/OCI25AICFAV1.png"
-                        alt="Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate"
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
-                    </div>
-
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#f0f6fc', margin: '0 0 6px 0', lineHeight: 1.3, fontFamily: 'Space Grotesk' }}>
-                        Oracle Cloud Infrastructure 2025 Certified AI Foundations Associate
-                      </h3>
-                      <div style={{ fontSize: '0.9rem', color: '#8b949e', fontWeight: 500 }}>Oracle University</div>
+                  <div className="skills-category-box" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>⚡ Backends & Web</h3>
+                    <div className="skills-grid-uiverse">
+                      {[
+                        { name: "FastAPI", color: "#009688" },
+                        { name: "React.js", color: "#61DAFB" },
+                        { name: "Node.js", color: "#339933" },
+                        { name: "Express.js", color: "#808080" },
+                        { name: "Django", color: "#092E20" },
+                        { name: "Flask", color: "#000000" },
+                        { name: "Angular.js", color: "#DD0031" },
+                        { name: "Java", color: "#007396" },
+                        { name: "JavaScript", color: "#F7DF1E" },
+                        { name: "HTML5", color: "#E34F26" },
+                        { name: "NPM", color: "#CB3837" },
+                        { name: "Markdown", color: "#808080" }
+                      ].map((s, i) => (
+                        <span
+                          key={i}
+                          className="skill-card-uiverse"
+                          style={{
+                            '--accent-color': s.color,
+                            '--accent-color-glow': `${s.color}33`
+                          }}
+                        >
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: s.color,
+                            boxShadow: `0 0 6px ${s.color}`,
+                            display: 'inline-block'
+                          }} />
+                          {s.name}
+                        </span>
+                      ))}
                     </div>
                   </div>
 
-                  <p style={{ fontSize: '0.9rem', color: '#8b949e', lineHeight: 1.6, marginBottom: '1.75rem' }}>
-                    Demonstrates complete core mastery of Artificial Intelligence and Machine Learning paradigms, spanning Large Language Models (LLMs), deep learning networks, prompt optimization engineering, and standard AI deployments on OCI infrastructure.
+                  <div className="skills-category-box" style={{ padding: '1.25rem' }}>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>🗄️ Databases & Pipelines</h3>
+                    <div className="skills-grid-uiverse">
+                      {[
+                        { name: "PostgreSQL", color: "#4169E1" },
+                        { name: "MongoDB", color: "#47A248" },
+                        { name: "MySQL", color: "#4479A1" },
+                        { name: "Redis", color: "#DC382D" },
+                        { name: "Supabase", color: "#3ECF8E" },
+                        { name: "Git", color: "#F05032" },
+                        { name: "GitHub", color: "#F0F6FC" }
+                      ].map((s, i) => (
+                        <span
+                          key={i}
+                          className="skill-card-uiverse"
+                          style={{
+                            '--accent-color': s.color,
+                            '--accent-color-glow': `${s.color}33`
+                          }}
+                        >
+                          <span style={{
+                            width: '6px',
+                            height: '6px',
+                            borderRadius: '50%',
+                            backgroundColor: s.color,
+                            boxShadow: `0 0 6px ${s.color}`,
+                            display: 'inline-block'
+                          }} />
+                          {s.name}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </Html>
+          </group>
+
+          {/* 🛸 SECTOR: CREDENTIALS [10, 7, -8] */}
+          <group position={sectorCoordinates.credentials}>
+            <Html
+              position={[0, -1.1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'credentials' ? 1 : 0,
+                visibility: activeSector === 'credentials' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'credentials' ? 'auto' : 'none'
+              }}
+            >
+              <div style={{ width: '920px' }}>
+                <h2 className="heading-md" style={{ marginBottom: '1.5rem', fontSize: '2rem' }}>Credentials & Verified Badges</h2>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '1.5rem' }}>
+                  <div className="credential-card oracle-card" style={{ padding: '1.5rem' }}>
+                    <div className="credential-badge-img-wrapper" style={{ width: '64px', height: '64px' }}>
+                      <img src="https://brm-workforce.oracle.com/pdf/certview/images/OCI25AICFAV1.png" alt="Oracle" style={{ width: '100%' }} />
+                    </div>
+                    <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>OCI 2025 AI Foundations Associate</h3>
+                    <a href="https://catalog-education.oracle.com/pls/certview/sharebadge?id=7BE6ED30EE3083111B17C78B5EDF74C875F88216A2CE6EA4924CA511B0DD4AB5" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                  </div>
+
+                  <div className="credential-card google-card" style={{ padding: '1.5rem' }}>
+                    <div className="credential-badge-img-wrapper" style={{ width: '64px', height: '64px' }}>
+                      <img src="https://images.credly.com/images/000655a5-3837-4c38-b906-2eb9c059ab36/linkedin_thumb_blob" alt="Google" style={{ width: '100%' }} />
+                    </div>
+                    <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Google Cloud AI Agent Engineer</h3>
+                    <a href="https://www.credly.com/badges/4be3d2ac-f8bd-44ad-bcec-91d0d86c1ca9" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                  </div>
+
+                  <div className="credential-card deloitte-card" style={{ padding: '1.5rem' }}>
+                    <div style={{ width: '120px', height: '54px', borderRadius: '6px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', padding: '4px' }}>
+                      <img src={deloitteSimImg} alt="Deloitte Certificate" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    </div>
+                    <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Deloitte Data Analytics Job Simulation</h3>
+                    <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                  </div>
+                </div>
+              </div>
+            </Html>
+          </group>
+
+          {/* ✉️ SECTOR: CONTACT [0, 10, -6] */}
+          <group position={sectorCoordinates.contact}>
+            <Html
+              position={[0, -1, 0]}
+              transform
+              distanceFactor={4.5}
+              className="r3f-html-wrapper"
+              style={{
+                transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
+                opacity: activeSector === 'contact' ? 1 : 0,
+                visibility: activeSector === 'contact' ? 'visible' : 'hidden',
+                pointerEvents: activeSector === 'contact' ? 'auto' : 'none'
+              }}
+            >
+              <div className="contact-hud-panel">
+                {/* Top header with animated gradient */}
+                <div className="contact-header">
+                  <div className="contact-status-line">
+                    <span className="contact-status-dot" />
+                    <span style={{ fontSize: '0.75rem', fontFamily: 'Space Grotesk', color: 'var(--accent)', letterSpacing: '2px', textTransform: 'uppercase' }}>Available for opportunities</span>
+                  </div>
+                  <h2 className="contact-title">Let's Connect</h2>
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.7, maxWidth: '440px', margin: '0 auto' }}>
+                    Open to collaborations in AI/ML research, agent architectures, and full-stack engineering. Let's build something extraordinary.
                   </p>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
-                  <a
-                    href="https://catalog-education.oracle.com/pls/certview/sharebadge?id=7BE6ED30EE3083111B17C78B5EDF74C875F88216A2CE6EA4924CA511B0DD4AB5"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-neon-border"
-                    style={{
-                      flex: 1,
-                      fontSize: '0.875rem',
-                      '--accent': 'var(--accent)'
-                    }}
-                  >
-                    <span>🛡️</span> Verify on Oracle CertView
-                  </a>
-                </div>
-              </div>
+                {/* Two-column layout */}
+                <div className="contact-grid">
+                  {/* Left: Info cards */}
+                  <div className="contact-info-column">
+                    <a href="mailto:vajhalasainandu@gmail.com" className="contact-info-card" style={{ textDecoration: 'none' }}>
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(23, 178, 106, 0.12)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Email</span>
+                        <span style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.95rem', marginTop: '2px' }}>vajhalasainandu@gmail.com</span>
+                      </div>
+                    </a>
 
-              {/* Google Cloud AI Agent Engineer Card */}
-              <div className="credential-card google-card">
-                <div>
-                  <div className="credential-card-header">
-                    <span style={{ fontSize: '0.8rem', color: '#8b949e', fontWeight: 600, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Professional Certification</span>
-                    <span style={{
-                      fontSize: '0.75rem',
-                      backgroundColor: 'rgba(66, 133, 244, 0.1)',
-                      color: '#4285F4',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontWeight: 600,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px'
-                    }}>
-                      <span style={{ width: '6px', height: '6px', backgroundColor: '#4285F4', borderRadius: '50%' }}></span> Verified
-                    </span>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '1.25rem', alignItems: 'flex-start', margin: '0.5rem 0 1.5rem 0' }}>
-                    <div className="credential-badge-img-wrapper" style={{ boxShadow: '0 4px 20px rgba(66, 133, 244, 0.15)' }}>
-                      <img
-                        src="https://images.credly.com/images/000655a5-3837-4c38-b906-2eb9c059ab36/linkedin_thumb_blob"
-                        alt="Engineer AI Agents with Agent Development Kit (ADK)"
-                        style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                      />
+                    <div className="contact-info-card">
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(66, 133, 244, 0.12)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285F4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Location</span>
+                        <span style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.95rem', marginTop: '2px' }}>Hyderabad, India — 500047</span>
+                      </div>
                     </div>
 
-                    <div>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: '700', color: '#f0f6fc', margin: '0 0 6px 0', lineHeight: 1.3, fontFamily: 'Space Grotesk' }}>
-                        Engineer AI Agents with Agent Development Kit (ADK)
-                      </h3>
-                      <div style={{ fontSize: '0.9rem', color: '#8b949e', fontWeight: 500 }}>Google Cloud</div>
+                    <div className="contact-info-card">
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(168, 85, 247, 0.12)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Timezone</span>
+                        <span style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.95rem', marginTop: '2px' }}>IST (UTC +5:30)</span>
+                      </div>
                     </div>
                   </div>
 
-                  <p style={{ fontSize: '0.9rem', color: '#8b949e', lineHeight: 1.6, marginBottom: '1.75rem' }}>
-                    Demonstrates advanced expertise in formulating real-world language model research problems, building tokenizers, preparing training datasets for transformer architectures, and running small language model (SLM) training loops.
-                  </p>
+                  {/* Right: Social links */}
+                  <div className="contact-social-column">
+                    <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="contact-social-card contact-social-github">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+                      <div>
+                        <span className="contact-social-label">GitHub</span>
+                        <span className="contact-social-handle">@SaiNanduVajhala</span>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
+                    </a>
+
+                    <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="contact-social-card contact-social-linkedin">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                      <div>
+                        <span className="contact-social-label">LinkedIn</span>
+                        <span className="contact-social-handle">vajhala-sai-nandu</span>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
+                    </a>
+
+                    <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer" className="contact-social-card contact-social-kaggle">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.281.18.046.149.034.238-.036.27l-6.555 6.344 6.836 8.507c.095.104.117.208.075.328z" /></svg>
+                      <div>
+                        <span className="contact-social-label">Kaggle</span>
+                        <span className="contact-social-handle">vajhalasainandu</span>
+                      </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
+                    </a>
+                  </div>
                 </div>
 
-                <div style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
-                  <a
-                    href="https://www.credly.com/badges/4be3d2ac-f8bd-44ad-bcec-91d0d86c1ca9"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="btn-neon-border"
-                    style={{
-                      flex: 1,
-                      fontSize: '0.875rem',
-                      '--accent': '#4285F4'
-                    }}
-                  >
-                    <span>🛡️</span> Verify on Credly
-                  </a>
+                {/* Footer */}
+                <div className="contact-footer">
+                  <div className="contact-footer-line" />
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.8rem', letterSpacing: '0.5px' }}>&copy; {new Date().getFullYear()} Sai Nandu Vajhala · Portfolio</p>
                 </div>
               </div>
+            </Html>
+          </group>
 
-            </div>
-          </motion.div>
-        </section>
-      </main>
-
-      <footer id="contact" style={{ padding: '4rem 0', backgroundColor: 'var(--bg-secondary)', borderTop: '1px solid var(--border)', textAlign: 'center' }}>
-        <div className="container">
-          <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="heading-md" style={{ marginBottom: '1.5rem' }}>
-            Get In Touch
-          </motion.h2>
-
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', alignItems: 'center', marginBottom: '2rem', color: 'var(--text-secondary)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '20px' }}>✉️</span>
-              <a href="mailto:vajhalasainandu@gmail.com" className="text-accent" style={{ fontSize: '1.125rem' }}>vajhalasainandu@gmail.com</a>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <span style={{ fontSize: '20px' }}>📍</span>
-              <span style={{ fontSize: '1.125rem' }}>Hyderabad, India - 500047</span>
-            </div>
-          </motion.div>
-
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} style={{ display: 'flex', justifyContent: 'center', gap: '1.5rem', marginBottom: '2rem', flexWrap: 'wrap', alignItems: 'center' }}>
-            <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="social-btn-uiverse github">
-              <span style={{ fontSize: '20px' }}>💻</span> GitHub
-            </a>
-            <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="social-btn-uiverse linkedin">
-              <span style={{ fontSize: '20px' }}>💼</span> LinkedIn
-            </a>
-          </motion.div>
-
-          <p style={{ color: 'var(--text-secondary)' }}>&copy; {new Date().getFullYear()} Sai Nandu Vajhala. Designed with purpose.</p>
-        </div>
-      </footer>
+        </Canvas>
+      </div>
     </>
   );
 }
