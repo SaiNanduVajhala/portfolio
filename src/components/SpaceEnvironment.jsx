@@ -2,7 +2,7 @@ import React, { useRef, useMemo } from 'react';
 import { useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 
-function Starfield({ count = 2000 }) {
+function Starfield({ count = 2000, theme = 'dark' }) {
   const pointsRef = useRef();
 
   const [positions] = useMemo(() => {
@@ -37,18 +37,20 @@ function Starfield({ count = 2000 }) {
         />
       </bufferGeometry>
       <pointsMaterial
-        color="#FCFCFD"
+        color={theme === 'light' ? '#E65F2B' : '#FCFCFD'}
         size={0.06}
         sizeAttenuation={true}
         transparent={true}
-        opacity={0.3}
+        opacity={theme === 'light' ? 0.4 : 0.3}
+        blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
         depthWrite={false}
       />
     </points>
   );
 }
 
-function ConnectingPath({ start, end, color = "#17B26A" }) {
+function ConnectingPath({ start, end, theme = 'dark' }) {
+  const color = theme === 'light' ? '#C54A1C' : '#17B26A';
   const curve = useMemo(() => {
     // Generate curved arched path between sectors
     const midPoint = new THREE.Vector3()
@@ -88,37 +90,32 @@ function ConnectingPath({ start, end, color = "#17B26A" }) {
       <lineBasicMaterial
         color={color}
         transparent={true}
-        opacity={0.12}
-        blending={THREE.AdditiveBlending}
+        opacity={theme === 'light' ? 0.25 : 0.12}
+        blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
         depthWrite={false}
       />
     </line>
   );
 }
 
-export default function SpaceEnvironment({ sectorCoordinates }) {
+export default function SpaceEnvironment({ sectorCoordinates, theme }) {
   // Connect Hero [0,0,0] to all other coordinate sectors
   const connections = useMemo(() => {
-    const coords = { ...sectorCoordinates };
-    delete coords.hero; // don't connect hero to itself
+    const otherSectors = Object.keys(sectorCoordinates).filter(k => k !== 'hero');
 
-    return Object.entries(coords).map(([key, value]) => {
-      // Alternating colors between Emerald Green and digital blue
-      const color = key === 'about' || key === 'skills' ? '#17B26A' : '#4285F4';
-      return (
-        <ConnectingPath
-          key={key}
-          start={[0, 0, 0]}
-          end={value}
-          color={color}
-        />
-      );
-    });
-  }, [sectorCoordinates]);
+    return otherSectors.map((sectorKey) => (
+      <ConnectingPath 
+        key={sectorKey} 
+        start={sectorCoordinates.hero} 
+        end={sectorCoordinates[sectorKey]}
+        theme={theme}
+      />
+    ));
+  }, [sectorCoordinates, theme]);
 
   return (
     <group>
-      <Starfield count={2200} />
+      <Starfield count={2200} theme={theme} />
       {connections}
     </group>
   );

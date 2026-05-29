@@ -6,7 +6,7 @@ import * as THREE from 'three';
  * NeuralNetwork — A native R3F component (NOT a nested Canvas).
  * Renders directly inside the main Canvas scene graph for zero-overhead integration.
  */
-export default function NeuralNetwork({ count = 50 }) {
+export default function NeuralNetwork({ count = 50, theme = 'dark' }) {
   const pointsRef = useRef();
   const linesRef = useRef();
   const groupRef = useRef();
@@ -108,13 +108,13 @@ export default function NeuralNetwork({ count = 50 }) {
           />
         </bufferGeometry>
         <pointsMaterial
-          color="#17B26A"
+          color={theme === 'light' ? '#E65F2B' : '#17B26A'}
           size={0.12}
           sizeAttenuation={true}
           transparent={true}
-          opacity={0.9}
+          opacity={theme === 'light' ? 0.8 : 0.9}
           depthWrite={false}
-          blending={THREE.AdditiveBlending}
+          blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
         />
       </points>
 
@@ -126,10 +126,10 @@ export default function NeuralNetwork({ count = 50 }) {
           />
         </bufferGeometry>
         <lineBasicMaterial
-          color="#4285F4"
+          color={theme === 'light' ? '#1A1715' : '#4285F4'}
           transparent={true}
-          opacity={0.25}
-          blending={THREE.AdditiveBlending}
+          opacity={theme === 'light' ? 0.15 : 0.25}
+          blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
           depthWrite={false}
         />
       </lineSegments>
@@ -137,11 +137,11 @@ export default function NeuralNetwork({ count = 50 }) {
       <mesh>
         <sphereGeometry args={[1.5, 12, 12]} />
         <meshBasicMaterial
-          color="#17B26A"
+          color={theme === 'light' ? '#C54A1C' : '#17B26A'}
           wireframe={true}
           transparent={true}
-          opacity={0.08}
-          blending={THREE.AdditiveBlending}
+          opacity={theme === 'light' ? 0.15 : 0.08}
+          blending={theme === 'light' ? THREE.NormalBlending : THREE.AdditiveBlending}
         />
       </mesh>
     </group>
