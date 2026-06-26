@@ -678,6 +678,12 @@ footer {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(52, 64, 84, 0.8);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+<<<<<<< HEAD
+=======
+  will-change: transform;
+  filter: blur(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+>>>>>>> lightmode
 }
 
 /* Front face ─────────────────────────────────────── */
@@ -1119,6 +1125,19 @@ footer {
   background-color: var(--bg-primary);
 }
 
+<<<<<<< HEAD
+=======
+.r3f-html-wrapper {
+  will-change: transform;
+  filter: blur(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+  -moz-osx-font-smoothing: auto;
+  image-rendering: -webkit-optimize-contrast;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+}
+
+>>>>>>> lightmode
 .glass-hud-card {
   width: 500px;
   background: rgba(22, 27, 38, 0.75);
@@ -1130,9 +1149,18 @@ footer {
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(23, 178, 106, 0.05);
   transition: border-color 0.4s ease;
   pointer-events: auto;
+<<<<<<< HEAD
   will-change: transform, opacity;
   contain: layout style paint;
   transform: translateZ(0);
+=======
+  contain: layout style paint;
+  transform: translateZ(0);
+  will-change: transform, opacity;
+  filter: blur(0);
+  -webkit-font-smoothing: subpixel-antialiased;
+  image-rendering: -webkit-optimize-contrast;
+>>>>>>> lightmode
 }
 
 .glass-hud-card:hover {
@@ -1545,6 +1573,10 @@ a.contact-info-card {
 [data-theme="light"] .contact-title {
   background: linear-gradient(135deg, #1A1715 0%, #E65F2B 60%, #C54A1C 100%);
   -webkit-background-clip: text;
+<<<<<<< HEAD
+=======
+  background-clip: text;
+>>>>>>> lightmode
   -webkit-text-fill-color: transparent;
 }
 [data-theme="light"] .credential-card,
@@ -1570,6 +1602,59 @@ a.contact-info-card {
 [data-theme="light"] .contact-social-label {
   color: #1A1715;
 }
+<<<<<<< HEAD
 [data-theme="light"] .contact-footer-line {
   background: linear-gradient(90deg, transparent 0%, rgba(230, 95, 43, 0.3) 50%, transparent 100%);
+=======
+
+/* ==========================================================================
+   Mobile Responsiveness Overrides
+   ========================================================================== */
+@media (max-width: 768px) {
+  .mobile-menu-toggle {
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem;
+    z-index: 1000;
+  }
+  
+  .hud-nav-links.mobile-hidden {
+    display: none !important;
+  }
+  
+  .hud-nav-links.mobile-menu-open {
+    display: flex !important;
+    flex-direction: column;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    width: 250px;
+    background: rgba(22, 27, 38, 0.95);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    gap: 1.5rem;
+    z-index: 999;
+    box-shadow: var(--shadow-lg);
+  }
+
+  [data-theme="light"] .hud-nav-links.mobile-menu-open {
+    background: rgba(255, 255, 255, 0.95);
+  }
+  
+  .contact-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  
+  .heading-lg { font-size: 2.25rem !important; }
+  .heading-md { font-size: 1.5rem !important; }
+  .body-lg { font-size: 1rem !important; }
+>>>>>>> lightmode
 }

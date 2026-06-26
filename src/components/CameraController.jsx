@@ -4,7 +4,11 @@ import * as THREE from 'three';
 
 export default function CameraController({ activeSector, sectorCoordinates }) {
   const { camera } = useThree();
+<<<<<<< HEAD
   const targetPos = useRef(new THREE.Vector3(0, 0, 6));
+=======
+  const targetPos = useRef(new THREE.Vector3(0, 0, 6.8));
+>>>>>>> lightmode
   const targetLook = useRef(new THREE.Vector3(0, 0, 0));
   const currentLook = useRef(new THREE.Vector3(0, 0, 0));
   const globalPointer = useRef({ x: 0, y: 0 });
@@ -23,11 +27,19 @@ export default function CameraController({ activeSector, sectorCoordinates }) {
 
   useEffect(() => {
     const coord = sectorCoordinates[activeSector] || [0, 0, 0];
+<<<<<<< HEAD
     
     // Shift camera target downward dynamically to clear the fixed 56px top navbar
     const yOffset = activeSector === 'hero' ? -0.2 : -0.8;
     
     targetPos.current.set(coord[0], coord[1] + yOffset, coord[2] + 6);
+=======
+
+    // Shift camera target downward dynamically to clear the fixed 56px top navbar
+    const yOffset = activeSector === 'hero' ? -0.2 : -0.8;
+
+    targetPos.current.set(coord[0], coord[1] + yOffset, coord[2] + 9);
+>>>>>>> lightmode
     targetLook.current.set(coord[0], coord[1] + yOffset, coord[2]);
   }, [activeSector, sectorCoordinates]);
 
