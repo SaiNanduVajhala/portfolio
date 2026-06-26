@@ -9,6 +9,7 @@ import CameraController from './components/CameraController';
 import SpaceEnvironment from './components/SpaceEnvironment';
 import NeuralNetwork from './components/NeuralSphere';
 import deloitteSimImg from './assets/deloitte_simulation.png';
+import MobilePortfolio from './components/MobilePortfolio';
 
 // Predefined 3D coordinates for each sector in the Latent Space
 const sectorCoordinates = {
@@ -284,9 +285,9 @@ function App() {
     }
   }, [terminalHistory]);
 
-  const filteredProjects = filter === "all"
-    ? projectsData
-    : projectsData.filter(p => p.category === filter);
+  if (isMobile) {
+    return <MobilePortfolio theme={theme} setTheme={setTheme} />;
+  }
 
   return (
     <>
