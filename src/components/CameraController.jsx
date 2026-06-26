@@ -2,8 +2,14 @@ import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 
-export default function CameraController({ activeSector, sectorCoordinates }) {
+export default function CameraController({ activeSector, sectorCoordinates, isMobile }) {
   const { camera } = useThree();
+
+  useEffect(() => {
+    camera.fov = isMobile ? 68 : 55;
+    camera.updateProjectionMatrix();
+  }, [isMobile, camera]);
+
   const targetPos = useRef(new THREE.Vector3(0, 0, 6.8));
   const targetLook = useRef(new THREE.Vector3(0, 0, 0));
   const currentLook = useRef(new THREE.Vector3(0, 0, 0));
@@ -25,11 +31,14 @@ export default function CameraController({ activeSector, sectorCoordinates }) {
     const coord = sectorCoordinates[activeSector] || [0, 0, 0];
 
     // Shift camera target downward dynamically to clear the fixed 56px top navbar
-    const yOffset = activeSector === 'hero' ? -0.2 : -0.8;
+    const yOffset = activeSector === 'hero' 
+      ? (isMobile ? 0.4 : -0.2) 
+      : (activeSector === 'credentials' && isMobile ? -1.0 : (isMobile ? -0.2 : -0.8));
+    const zDepth = isMobile ? 10.5 : 9;
 
-    targetPos.current.set(coord[0], coord[1] + yOffset, coord[2] + 9);
+    targetPos.current.set(coord[0], coord[1] + yOffset, coord[2] + zDepth);
     targetLook.current.set(coord[0], coord[1] + yOffset, coord[2]);
-  }, [activeSector, sectorCoordinates]);
+  }, [activeSector, sectorCoordinates, isMobile]);
 
   useFrame(() => {
     const pointer = globalPointer.current;

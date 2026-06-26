@@ -350,19 +350,19 @@ function App() {
           <SpaceEnvironment sectorCoordinates={sectorCoordinates} theme={theme} />
 
           {/* Smooth camera flight transitions */}
-          <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} />
+          <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} isMobile={isMobile} />
 
           {/* 🛸 SECTOR: HERO [0, 0, 0] */}
           <group position={sectorCoordinates.hero}>
             {/* Neural sphere rendered as native 3D object — always alive, no nested Canvas */}
-            <group position={[-3, 0.2, -2]} scale={1.8}>
+            <group position={isMobile ? [0, 1.2, -2] : [-3, 0.2, -2]} scale={isMobile ? 1.4 : 1.8}>
               <NeuralNetwork count={50} theme={theme} />
             </group>
             <Html
               position={[0, -0.5, 0]}
               transform
               pixelPerfect
-              scale={0.66}
+              scale={isMobile ? 1.35 : 0.66}
               distanceFactor={4.5}
               className="r3f-html-wrapper"
               style={{
@@ -372,8 +372,8 @@ function App() {
                 pointerEvents: activeSector === 'hero' ? 'auto' : 'none'
               }}
             >
-              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? '2rem' : '3rem', width: isMobile ? '340px' : '960px', alignItems: 'center', textAlign: isMobile ? 'center' : 'left', transform: 'scale(1.5)', transformOrigin: 'center' }}>
-                <div style={{ position: 'relative', minHeight: '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1.2fr 1fr', gap: isMobile ? '2rem' : '3rem', width: isMobile ? '340px' : '960px', alignItems: 'center', textAlign: isMobile ? 'center' : 'left', transform: isMobile ? 'scale(1.0)' : 'scale(1.5)', transformOrigin: 'center' }}>
+                <div style={{ position: 'relative', minHeight: isMobile ? 'auto' : '380px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
 
                   <div style={{ position: 'relative', zIndex: 2 }}>
                     <h1 className="heading-lg" style={{ margin: 0, lineHeight: 1.1 }}>
@@ -396,7 +396,7 @@ function App() {
                 <div className="id-card-3d-container" style={{ transform: isMobile ? 'none' : 'translateX(50px)', margin: isMobile ? '0 auto' : '0' }}>
 
                   {/* Premium flip card — uses scaleX squeeze animation (CSS 3D backface-visibility broken in R3F Html) */}
-                  <div className="id-card-wrapper" style={{ zIndex: 2 }} onMouseEnter={() => setCardFlipped(true)} onMouseLeave={() => setCardFlipped(false)}>
+                  <div className="id-card-wrapper" style={{ zIndex: 2 }} onMouseEnter={() => !isMobile && setCardFlipped(true)} onMouseLeave={() => !isMobile && setCardFlipped(false)} onClick={() => isMobile && setCardFlipped(!cardFlipped)}>
                     <div className="id-card">
                       <AnimatePresence>
                         {!cardFlipped ? (
@@ -494,7 +494,7 @@ function App() {
                       </AnimatePresence>
                     </div>
                     <div className="id-card-hint">
-                      <span>↕</span> hover to flip
+                      <span>↕</span> {isMobile ? "tap to flip" : "hover to flip"}
                     </div>
                   </div>
                 </div>
@@ -508,6 +508,7 @@ function App() {
               position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
@@ -544,6 +545,7 @@ function App() {
               position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
@@ -573,33 +575,35 @@ function App() {
                 <div style={{ position: 'relative', width: isMobile ? '100%' : '600px', height: '390px', margin: '2.5rem auto 1rem auto' }}>
 
                   {/* Left Arrow Button (Absolute Centered Outside Card) */}
-                  <button
-                    onClick={() => {
-                      setSlideDirection(-1);
-                      setCurrentProjectIndex((prev) => (prev === 0 ? filteredProjects.length - 1 : prev - 1));
-                    }}
-                    className="btn btn-premium-glow"
-                    style={{
-                      position: 'absolute',
-                      left: isMobile ? '-10px' : '-70px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      borderRadius: '50%',
-                      width: '44px',
-                      height: '44px',
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '1px solid var(--border)',
-                      backdropFilter: 'blur(10px)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      zIndex: 20
-                    }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
-                  </button>
+                  {!isMobile && (
+                    <button
+                      onClick={() => {
+                        setSlideDirection(-1);
+                        setCurrentProjectIndex((prev) => (prev === 0 ? filteredProjects.length - 1 : prev - 1));
+                      }}
+                      className="btn btn-premium-glow"
+                      style={{
+                        position: 'absolute',
+                        left: '-70px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid var(--border)',
+                        backdropFilter: 'blur(10px)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        zIndex: 20
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+                  )}
 
                   {/* Slider Container holding the animated spotlight card */}
                   <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', borderRadius: '16px' }}>
@@ -628,18 +632,18 @@ function App() {
                         >
                           <div className="spotlight-glow" style={{ top: 'var(--mouse-y)', left: 'var(--mouse-x)' }}></div>
                           {/* Centered card padding and alignment */}
-                          <div className="spotlight-content" style={{ padding: '2rem 2.2rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                          <div className="spotlight-content" style={{ padding: isMobile ? '1.25rem' : '2rem 2.2rem', height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                             <div>
                               {/* Centered header design */}
                               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem', textAlign: 'center' }}>
                                 <span className="tag" style={{ textTransform: 'uppercase', fontSize: '0.72rem', letterSpacing: '0.08em', alignSelf: 'center', padding: '3px 8px' }}>
                                   {filteredProjects[currentProjectIndex].category}
                                 </span>
-                                <h3 style={{ fontSize: '1.35rem', fontFamily: 'Space Grotesk', margin: 0, color: 'var(--text-primary)', lineHeight: 1.3, textAlign: 'center' }}>
+                                <h3 style={{ fontSize: isMobile ? '1.15rem' : '1.35rem', fontFamily: 'Space Grotesk', margin: 0, color: 'var(--text-primary)', lineHeight: 1.3, textAlign: 'center' }}>
                                   {filteredProjects[currentProjectIndex].title}
                                 </h3>
                               </div>
-                              <p className="text-secondary custom-scrollbar" style={{ fontSize: '1.02rem', lineHeight: 1.65, marginTop: '0.5rem', height: '120px', overflowY: 'auto', paddingRight: '6px', textAlign: 'center' }}>
+                              <p className="text-secondary custom-scrollbar" style={{ fontSize: isMobile ? '0.9rem' : '1.02rem', lineHeight: 1.65, marginTop: '0.5rem', height: isMobile ? '100px' : '120px', overflowY: 'auto', paddingRight: '6px', textAlign: 'center' }}>
                                 {filteredProjects[currentProjectIndex].description}
                               </p>
                             </div>
@@ -675,56 +679,108 @@ function App() {
                   </div>
 
                   {/* Right Arrow Button (Absolute Centered Outside Card) */}
-                  <button
-                    onClick={() => {
-                      setSlideDirection(1);
-                      setCurrentProjectIndex((prev) => (prev === filteredProjects.length - 1 ? 0 : prev + 1));
-                    }}
-                    className="btn btn-premium-glow"
-                    style={{
-                      position: 'absolute',
-                      right: isMobile ? '-10px' : '-70px',
-                      top: '50%',
-                      transform: 'translateY(-50%)',
-                      borderRadius: '50%',
-                      width: '44px',
-                      height: '44px',
-                      padding: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      border: '1px solid var(--border)',
-                      backdropFilter: 'blur(10px)',
-                      color: 'var(--text-primary)',
-                      cursor: 'pointer',
-                      zIndex: 20
-                    }}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
-                  </button>
+                  {!isMobile && (
+                    <button
+                      onClick={() => {
+                        setSlideDirection(1);
+                        setCurrentProjectIndex((prev) => (prev === filteredProjects.length - 1 ? 0 : prev + 1));
+                      }}
+                      className="btn btn-premium-glow"
+                      style={{
+                        position: 'absolute',
+                        right: '-70px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid var(--border)',
+                        backdropFilter: 'blur(10px)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        zIndex: 20
+                      }}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                  )}
                 </div>
 
                 {/* Dot Indicators */}
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
-                  {filteredProjects.map((_, idx) => (
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '1rem', marginTop: '1.5rem' }}>
+                  {isMobile && (
                     <button
-                      key={idx}
                       onClick={() => {
-                        setSlideDirection(idx > currentProjectIndex ? 1 : -1);
-                        setCurrentProjectIndex(idx);
+                        setSlideDirection(-1);
+                        setCurrentProjectIndex((prev) => (prev === 0 ? filteredProjects.length - 1 : prev - 1));
                       }}
+                      className="btn btn-premium-glow"
                       style={{
-                        width: idx === currentProjectIndex ? '24px' : '8px',
-                        height: '8px',
-                        borderRadius: '4px',
-                        background: idx === currentProjectIndex ? 'var(--accent)' : 'rgba(52, 64, 84, 0.5)',
-                        border: 'none',
-                        cursor: 'pointer',
-                        transition: 'all 0.3s ease',
-                        boxShadow: idx === currentProjectIndex ? '0 0 8px var(--accent)' : 'none'
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid var(--border)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer'
                       }}
-                    />
-                  ))}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
+                    </button>
+                  )}
+
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    {filteredProjects.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => {
+                          setSlideDirection(idx > currentProjectIndex ? 1 : -1);
+                          setCurrentProjectIndex(idx);
+                        }}
+                        style={{
+                          width: idx === currentProjectIndex ? '24px' : '8px',
+                          height: '8px',
+                          borderRadius: '4px',
+                          background: idx === currentProjectIndex ? 'var(--accent)' : 'rgba(52, 64, 84, 0.5)',
+                          border: 'none',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: idx === currentProjectIndex ? '0 0 8px var(--accent)' : 'none'
+                        }}
+                      />
+                    ))}
+                  </div>
+
+                  {isMobile && (
+                    <button
+                      onClick={() => {
+                        setSlideDirection(1);
+                        setCurrentProjectIndex((prev) => (prev === filteredProjects.length - 1 ? 0 : prev + 1));
+                      }}
+                      className="btn btn-premium-glow"
+                      style={{
+                        borderRadius: '50%',
+                        width: '36px',
+                        height: '36px',
+                        padding: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        border: '1px solid var(--border)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
+                    </button>
+                  )}
                 </div>
               </div>
             </Html>
@@ -736,6 +792,7 @@ function App() {
               position={[0, -1.1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
@@ -748,7 +805,7 @@ function App() {
                 <h2 className="heading-md" style={{ marginBottom: '0.5rem', fontSize: '2rem' }}>Interactive Sandbox</h2>
                 <p className="text-secondary" style={{ marginBottom: '1.5rem', fontSize: '1rem' }}>Run commands inside this real-time portfolio console environment.</p>
 
-                <div className="terminal-container" style={{ height: '360px' }}>
+                <div className="terminal-container" style={{ height: isMobile ? '260px' : '360px' }}>
                   <div className="terminal-header">
                     <div className="terminal-dots">
                       <div className="dot dot-red"></div>
@@ -758,12 +815,12 @@ function App() {
                     <div className="terminal-title">bash - latent_shell</div>
                     <div></div>
                   </div>
-                  <div className="terminal-body" ref={terminalBodyRef} style={{ height: '315px', fontSize: '0.88rem' }}>
+                  <div className="terminal-body" ref={terminalBodyRef} style={{ height: isMobile ? '215px' : '315px', fontSize: '0.88rem' }}>
                     {terminalHistory.map((item, index) => (
                       <div key={index} className={`terminal-line ${item.type}`}>{item.text}</div>
                     ))}
                     <form onSubmit={handleTerminalSubmit} className="terminal-input-line">
-                      <span className="terminal-prompt" style={{ fontSize: '0.88rem' }}>sainandu@latent-space:~$</span>
+                      <span className="terminal-prompt" style={{ fontSize: '0.88rem' }}>{isMobile ? 'nandu:~$ ' : 'sainandu@latent-space:~$ '}</span>
                       <div style={{ display: 'flex', alignItems: 'center', flex: 1, position: 'relative' }}>
                         {terminalInput === "" && <span className="terminal-cursor" style={{ height: '14px' }}></span>}
                         <input type="text" value={terminalInput} onChange={(e) => setTerminalInput(e.target.value)} className="terminal-input" autoComplete="off" style={{ caretColor: 'transparent', fontSize: '0.88rem' }} />
@@ -781,6 +838,7 @@ function App() {
               position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
@@ -915,6 +973,7 @@ function App() {
               position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
@@ -960,6 +1019,7 @@ function App() {
               position={[0, -1, 0]}
               transform
               distanceFactor={4.5}
+              scale={isMobile ? 1.9 : 1.0}
               className="r3f-html-wrapper"
               style={{
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',

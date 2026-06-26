@@ -1592,6 +1592,10 @@ a.contact-info-card {
    Mobile Responsiveness Overrides
    ========================================================================== */
 @media (max-width: 768px) {
+  .container {
+    padding: 0 1rem !important;
+  }
+
   .mobile-menu-toggle {
     background: none;
     border: none;
@@ -1627,6 +1631,25 @@ a.contact-info-card {
 
   [data-theme="light"] .hud-nav-links.mobile-menu-open {
     background: rgba(255, 255, 255, 0.95);
+  }
+
+  .glass-hud-card {
+    width: 340px !important;
+    padding: 1.5rem !important;
+  }
+
+  .id-card-3d-container {
+    width: 320px !important;
+    height: 390px !important;
+  }
+
+  .contact-hud-panel {
+    width: 340px !important;
+    padding: 1.5rem !important;
+  }
+
+  .contact-title {
+    font-size: 1.75rem !important;
   }
   
   .contact-grid {
