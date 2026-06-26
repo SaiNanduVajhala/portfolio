@@ -678,12 +678,9 @@ footer {
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(52, 64, 84, 0.8);
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-<<<<<<< HEAD
-=======
   will-change: transform;
   filter: blur(0);
   -webkit-font-smoothing: subpixel-antialiased;
->>>>>>> lightmode
 }
 
 /* Front face ─────────────────────────────────────── */
@@ -1125,8 +1122,6 @@ footer {
   background-color: var(--bg-primary);
 }
 
-<<<<<<< HEAD
-=======
 .r3f-html-wrapper {
   will-change: transform;
   filter: blur(0);
@@ -1137,7 +1132,6 @@ footer {
   -webkit-transform-style: preserve-3d;
 }
 
->>>>>>> lightmode
 .glass-hud-card {
   width: 500px;
   background: rgba(22, 27, 38, 0.75);
@@ -1149,18 +1143,12 @@ footer {
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4), 0 0 100px rgba(23, 178, 106, 0.05);
   transition: border-color 0.4s ease;
   pointer-events: auto;
-<<<<<<< HEAD
-  will-change: transform, opacity;
-  contain: layout style paint;
-  transform: translateZ(0);
-=======
   contain: layout style paint;
   transform: translateZ(0);
   will-change: transform, opacity;
   filter: blur(0);
   -webkit-font-smoothing: subpixel-antialiased;
   image-rendering: -webkit-optimize-contrast;
->>>>>>> lightmode
 }
 
 .glass-hud-card:hover {
@@ -1573,10 +1561,7 @@ a.contact-info-card {
 [data-theme="light"] .contact-title {
   background: linear-gradient(135deg, #1A1715 0%, #E65F2B 60%, #C54A1C 100%);
   -webkit-background-clip: text;
-<<<<<<< HEAD
-=======
   background-clip: text;
->>>>>>> lightmode
   -webkit-text-fill-color: transparent;
 }
 [data-theme="light"] .credential-card,
@@ -1602,10 +1587,10 @@ a.contact-info-card {
 [data-theme="light"] .contact-social-label {
   color: #1A1715;
 }
-<<<<<<< HEAD
+
 [data-theme="light"] .contact-footer-line {
   background: linear-gradient(90deg, transparent 0%, rgba(230, 95, 43, 0.3) 50%, transparent 100%);
-=======
+}
 
 /* ==========================================================================
    Mobile Responsiveness Overrides
@@ -1656,5 +1641,4 @@ a.contact-info-card {
   .heading-lg { font-size: 2.25rem !important; }
   .heading-md { font-size: 1.5rem !important; }
   .body-lg { font-size: 1rem !important; }
->>>>>>> lightmode
 }
