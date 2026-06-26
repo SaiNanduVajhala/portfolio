@@ -285,6 +285,10 @@ function App() {
     }
   }, [terminalHistory]);
 
+  const filteredProjects = filter === "all"
+    ? projectsData
+    : projectsData.filter(p => p.category === filter);
+
   if (isMobile) {
     return <MobilePortfolio theme={theme} setTheme={setTheme} />;
   }
