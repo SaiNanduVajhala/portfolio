@@ -38,19 +38,19 @@ const KaggleIcon = ({ size = 14 }) => (
 const projectsData = [
   {
     id: 1,
+    title: "GPT-2 Code Completion using CodeXGLUE",
+    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
+    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
+    category: "Data Science",
+    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
+  },
+  {
+    id: 2,
     title: "Emotion-Aware Multimodal Voice Assistant",
     description: "A low-latency, full-duplex AI voice assistant combining real-time face tracking, demographic locking, and aggressive software echo cancellation. Adapts tone and voice dynamically based on user emotions and age.",
     tags: ["Python", "FastAPI", "WebSockets", "OpenAI"],
     category: "AI Agents",
     github: "https://github.com/SaiNanduVajhala/Voice_Model_with_full_duplex"
-  },
-  {
-    id: 2,
-    title: "CrewAI Trading Agent",
-    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
-    tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
-    category: "AI Agents",
-    github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
   },
   {
     id: 3,
@@ -70,11 +70,11 @@ const projectsData = [
   },
   {
     id: 5,
-    title: "GPT-2 Code Completion using CodeXGLUE",
-    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
-    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
-    category: "Data Science",
-    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
+    title: "CrewAI Trading Agent",
+    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
+    tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
+    category: "AI Agents",
+    github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
   }
 ];
 
@@ -141,7 +141,6 @@ function MobileSkillsPanel() {
           <button
             key={cat.key}
             className={`msp-tab ${activeKey === cat.key ? 'msp-tab-active' : ''}`}
-            style={activeKey === cat.key ? { '--tab-accent': cat.accent } : {}}
             onClick={() => setActiveKey(cat.key)}
           >
             <cat.Icon size={13} />
@@ -151,7 +150,7 @@ function MobileSkillsPanel() {
       </div>
 
       {/* Active category accent bar */}
-      <div className="msp-accent-bar" style={{ background: activeCat.accent }} />
+      <div className="msp-accent-bar" />
 
       {/* Skill chips grid with stagger animation */}
       <motion.div
@@ -165,14 +164,13 @@ function MobileSkillsPanel() {
           <motion.div
             key={skill.name}
             className="msp-chip"
-            style={{ '--chip-color': skill.color }}
             variants={{
               hidden: { opacity: 0, y: 12, scale: 0.88 },
               visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 22 } }
             }}
             whileTap={{ scale: 0.94 }}
           >
-            <span className="msp-chip-dot" style={{ background: skill.color }} />
+            <span className="msp-chip-dot" />
             {skill.name}
           </motion.div>
         ))}
@@ -181,7 +179,7 @@ function MobileSkillsPanel() {
       {/* Skill count footer */}
       <div className="msp-footer">
         <span>{activeCat.skills.length} skills in this category</span>
-        <span className="msp-footer-dot" style={{ background: activeCat.accent }} />
+        <span className="msp-footer-dot" />
       </div>
     </div>
   );
@@ -252,9 +250,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
     setTerminalInput("");
   };
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+
 
   // Tab change animation variants
   const slideVariants = {
@@ -301,11 +297,6 @@ export default function MobilePortfolio({ theme, setTheme }) {
 
   return (
     <div className="mobile-portfolio" data-theme={theme}>
-      {/* Floating Theme Button (Bypasses top header constraint) */}
-      <button className="mobile-theme-fab" onClick={toggleTheme} aria-label="Toggle Theme">
-        {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-      </button>
-
       {/* Main Content Area with Switchable Views */}
       <main className="mobile-content">
         <AnimatePresence mode="wait">
@@ -324,7 +315,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </div>
 
               <span className="mobile-hero-role">AI/ML Engineer</span>
-              <h1 className="mobile-hero-name">Sai Nandu Vajhala</h1>
+              <h1 className="mobile-hero-name">Sai Nandu<br />Vajhala</h1>
 
               <p className="mobile-hero-description">
                 Building intelligent agent networks, real-time voice systems, and cognitive automation.
@@ -340,81 +331,47 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </a>
               </div>
 
-              {/* Interactive ID Card (Tap to flip) */}
-              <div className="mobile-id-container" onClick={() => setCardFlipped(!cardFlipped)}>
-                <div className={`mobile-id-card ${cardFlipped ? 'is-flipped' : ''}`}>
-                  {/* Front Face */}
-                  <div className="mobile-id-face mobile-id-front" style={{ pointerEvents: cardFlipped ? 'none' : 'auto' }}>
-                    <div className="mobile-id-header">
-                      <span className="mobile-id-header-title">Portfolio ID</span>
-                      <span className="mobile-id-header-sub">AI/ML Engineering</span>
-                    </div>
-                    <div className="mobile-id-avatar">SN</div>
+              {/* About card */}
+              <div className="mobile-card" style={{ marginTop: '2.5rem', width: '100%' }}>
+                <h3 className="mobile-section-title">About Me</h3>
+                <p className="mobile-about-text">
+                  Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
+                </p>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, marginTop: '20px', marginBottom: '10px' }}>
-                      <span className="mobile-id-name">Sai Nandu Vajhala</span>
-                      <span className="mobile-id-role">AI/ML Engineer</span>
-                      <div className="mobile-id-divider" />
-                      <p className="mobile-id-details">
-                        BTech · Sreyas Institute<br />
-                        Hyderabad, India
-                      </p>
+                <div className="about-highlights-list" style={{ margin: '1.25rem 0' }}>
+                  {[
+                    "B.Tech CSE student specializing in AI & ML",
+                    "Competitive Programming & Problem Solving",
+                    "Machine Learning & GEN AI",
+                    "Open Source and Continuous Learning"
+                  ].map((hl, idx) => (
+                    <div key={idx} className="about-highlight-item" style={{ fontSize: '0.85rem' }}>
+                      <span className="about-highlight-dot" />
+                      <span>{hl}</span>
                     </div>
+                  ))}
+                </div>
 
-                    <div className="mobile-id-barcode">
-                      {[3, 5, 2, 7, 4, 6, 3, 5, 2, 4, 6, 3, 7, 5, 2, 4, 6, 3, 5, 4].map((h, i) => (
-                        <span key={i} style={{ width: i % 3 === 0 ? '3px' : '1.5px', height: `${h * 1.5}px` }} />
-                      ))}
+                <div className="mobile-experience-section" style={{ marginTop: '1.5rem' }}>
+                  <h4 style={{ fontSize: '1rem', fontFamily: 'Space Grotesk', marginBottom: '0.75rem', color: 'var(--text-primary)', fontWeight: '600' }}>Experience</h4>
+                  <div className="mobile-education">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                      <span className="mobile-education-degree">Data Science Intern</span>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Jun 2026 – Present</span>
                     </div>
+                    <div className="mobile-education-school" style={{ fontWeight: '500', color: 'var(--text-primary)', margin: '0.15rem 0 0.35rem 0' }}>XYlofy AI — Remote</div>
+                    <ul style={{ margin: 0, paddingLeft: '1rem', color: 'var(--text-secondary)', fontSize: '0.75rem', lineHeight: '1.5' }}>
+                      <li>Working on machine learning and data science projects involving data preprocessing, feature engineering, model training, and evaluation using Python.</li>
+                      <li>Applying Pandas, NumPy, Scikit-learn, and Matplotlib for data analysis, visualization, and predictive modeling.</li>
+                    </ul>
                   </div>
+                </div>
 
-                  {/* Back Face (Full contact rows like desktop) */}
-                  <div className="mobile-id-face mobile-id-back" style={{ pointerEvents: cardFlipped ? 'auto' : 'none' }}>
-                    <div>
-                      <h4 className="mobile-id-back-title">Contact Details</h4>
-                      <div className="mobile-id-contact-list">
-                        <div className="mobile-id-contact-item">
-                          <div className="mobile-id-contact-icon"><Mail size={14} /></div>
-                          <div>
-                            <span className="mobile-id-contact-label">Email</span>
-                            <span className="mobile-id-contact-value">vajhalasainandu@gmail.com</span>
-                          </div>
-                        </div>
-                        <div className="mobile-id-contact-item">
-                          <div className="mobile-id-contact-icon"><MapPin size={14} /></div>
-                          <div>
-                            <span className="mobile-id-contact-label">Location</span>
-                            <span className="mobile-id-contact-value">Hyderabad, India</span>
-                          </div>
-                        </div>
-                        <div className="mobile-id-contact-item">
-                          <div className="mobile-id-contact-icon"><LinkedInIcon size={14} /></div>
-                          <div>
-                            <span className="mobile-id-contact-label">LinkedIn</span>
-                            <span className="mobile-id-contact-value">vajhala-sai-nandu</span>
-                          </div>
-                        </div>
-                        <div className="mobile-id-contact-item">
-                          <div className="mobile-id-contact-icon"><GitHubIcon size={14} /></div>
-                          <div>
-                            <span className="mobile-id-contact-label">GitHub</span>
-                            <span className="mobile-id-contact-value">SaiNanduVajhala</span>
-                          </div>
-                        </div>
-                        <div className="mobile-id-contact-item">
-                          <div className="mobile-id-contact-icon"><KaggleIcon size={14} /></div>
-                          <div>
-                            <span className="mobile-id-contact-label">Kaggle</span>
-                            <span className="mobile-id-contact-value">vajhalasainandu</span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mobile-id-back-footer">
-                      <span>Open to opportunities</span>
-                      <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '50%', boxShadow: '0 0 6px var(--accent)' }} />
-                    </div>
+                <div className="mobile-education-section" style={{ marginTop: '1.5rem' }}>
+                  <h4 style={{ fontSize: '1rem', fontFamily: 'Space Grotesk', marginBottom: '0.75rem', color: 'var(--text-primary)', fontWeight: '600' }}>Academic Path</h4>
+                  <div className="mobile-education">
+                    <span className="mobile-education-degree">BTech in AI &amp; ML</span>
+                    <div className="mobile-education-school">Sreyas Institute (2024 - 2027)</div>
                   </div>
                 </div>
               </div>
@@ -473,31 +430,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </div>
               </div>
 
-              {/* About card */}
-              <div className="mobile-card">
-                <h3 className="mobile-section-title">About Me</h3>
-                <p className="mobile-about-text">
-                  Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
-                </p>
-
-                <div className="about-highlights-list" style={{ margin: '1.25rem 0' }}>
-                  {[
-                    "B.Tech CSE student specializing in AI & ML",
-                    "Competitive Programming & Problem Solving",
-                    "Machine Learning & GEN AI",
-                    "Open Source and Continuous Learning"
-                  ].map((hl, idx) => (
-                    <div key={idx} className="about-highlight-item" style={{ fontSize: '0.85rem' }}>
-                      <span className="about-highlight-dot" />
-                      <span>{hl}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mobile-education">
-                  <span className="mobile-education-degree">BTech in AI &amp; ML</span>
-                  <div className="mobile-education-school">Sreyas Institute (2024 - 2027) · CGPA: 7.2</div>
-                </div>
-              </div>
+              {/* About section moved to home view */}
 
               {/* Skills group card — Premium */}
               <MobileSkillsPanel />
@@ -640,7 +573,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </div>
 
               <a href="https://mail.google.com/mail/?view=cm&to=vajhalasainandu@gmail.com" target="_blank" rel="noreferrer" className="mobile-contact-card">
-                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(23, 178, 106, 0.12)' }}>
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
                   <Mail size={20} className="text-accent" />
                 </div>
                 <div className="mobile-contact-details">
@@ -651,8 +584,8 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </a>
 
               <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="mobile-contact-card">
-                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(66, 133, 244, 0.12)' }}>
-                  <LinkedInIcon size={20} style={{ color: '#4285F4' }} />
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                  <LinkedInIcon size={20} style={{ color: 'var(--accent)' }} />
                 </div>
                 <div className="mobile-contact-details">
                   <span className="mobile-contact-label">LinkedIn</span>
@@ -662,8 +595,8 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </a>
 
               <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="mobile-contact-card">
-                <div className="mobile-contact-icon-wrapper" style={{ background: 'var(--border)' }}>
-                  <GitHubIcon size={20} style={{ color: 'var(--text-primary)' }} />
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                  <GitHubIcon size={20} style={{ color: 'var(--accent)' }} />
                 </div>
                 <div className="mobile-contact-details">
                   <span className="mobile-contact-label">GitHub</span>
@@ -673,8 +606,8 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </a>
 
               <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer" className="mobile-contact-card">
-                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(32, 190, 255, 0.12)' }}>
-                  <KaggleIcon size={20} style={{ color: '#20BEFF' }} />
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                  <KaggleIcon size={20} style={{ color: 'var(--accent)' }} />
                 </div>
                 <div className="mobile-contact-details">
                   <span className="mobile-contact-label">Kaggle</span>

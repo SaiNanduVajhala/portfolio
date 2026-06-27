@@ -1,16 +1,17 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Canvas } from '@react-three/fiber';
+import { Canvas, useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
+import * as THREE from 'three';
 import './index.css';
 
 // Import 3D WebGL components
 import CameraController from './components/CameraController';
 import SpaceEnvironment from './components/SpaceEnvironment';
-import NeuralNetwork from './components/NeuralSphere';
+import Particles from './components/Particles';
 import deloitteSimImg from './assets/deloitte_simulation.png';
 import MobilePortfolio from './components/MobilePortfolio';
-import { ShieldCheck, Brain, Zap, Database, Code } from 'lucide-react';
+import { ShieldCheck, Brain, Zap, Database, Code, Download } from 'lucide-react';
 
 // Predefined 3D coordinates for each sector in the Latent Space
 const sectorCoordinates = {
@@ -27,19 +28,19 @@ const sectorCoordinates = {
 const projectsData = [
   {
     id: 1,
+    title: "GPT-2 Code Completion using CodeXGLUE",
+    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
+    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
+    category: "data-science",
+    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
+  },
+  {
+    id: 2,
     title: "Emotion-Aware Multimodal Voice Assistant",
     description: "A low-latency, full-duplex AI voice assistant combining real-time face tracking, demographic locking, and aggressive software echo cancellation. Adapts tone and voice dynamically based on user emotions and age.",
     tags: ["Python", "FastAPI", "WebSockets", "OpenAI"],
     category: "ai-agents",
     github: "https://github.com/SaiNanduVajhala/Voice_Model_with_full_duplex"
-  },
-  {
-    id: 2,
-    title: "CrewAI Trading Agent",
-    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
-    tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
-    category: "ai-agents",
-    github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
   },
   {
     id: 3,
@@ -59,11 +60,11 @@ const projectsData = [
   },
   {
     id: 5,
-    title: "GPT-2 Code Completion using CodeXGLUE",
-    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
-    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
-    category: "data-science",
-    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
+    title: "CrewAI Trading Agent",
+    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
+    tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
+    category: "ai-agents",
+    github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
   }
 ];
 
@@ -114,8 +115,51 @@ const KaggleIcon = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.281.18.046.149.034.238-.036.27l-6.555 6.344 6.836 8.507c.095.104.117.208.075.328z" /></svg>
 );
 
+// Generate a mathematically even and beautiful starfield for the landing screen
+const preloaderStars = (() => {
+  const starsList = [];
+  const cols = 20; // 20 columns
+  const rows = 12; // 12 rows
+  const colors = ['#FFFFFF', '#E6F0FF', '#B0D0FF', '#FFF3E3', '#FFEAE0'];
+  
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      // Base percentages for even grid layout
+      const baseLeft = (c / cols) * 100;
+      const baseTop = (r / rows) * 100;
+      
+      // Jitter offset within the grid cell to look natural but not clustered
+      const jitterLeft = Math.random() * (100 / cols) * 0.9;
+      const jitterTop = Math.random() * (100 / rows) * 0.9;
+      
+      const left = baseLeft + jitterLeft;
+      const top = baseTop + jitterTop;
+      
+      // Fine, sharp stars (1px to 2.5px)
+      const size = Math.random() * 1.5 + 1;
+      const opacity = Math.random() * 0.65 + 0.35;
+      const color = colors[Math.floor(Math.random() * colors.length)];
+      
+      const twinkleDuration = Math.random() * 3 + 2.5; 
+      const twinkleDelay = Math.random() * 5;
+      
+      starsList.push({
+        left: `${left}%`,
+        top: `${top}%`,
+        size: `${size}px`,
+        opacity,
+        color,
+        twinkleDuration: `${twinkleDuration}s`,
+        twinkleDelay: `${twinkleDelay}s`
+      });
+    }
+  }
+  return starsList;
+})();
+
 function App() {
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState("dark");
+  const [hasEntered, setHasEntered] = useState(false);
   const [activeSector, setActiveSector] = useState("hero");
   const [filter, setFilter] = useState("all");
   const [cardFlipped, setCardFlipped] = useState(false);
@@ -210,14 +254,15 @@ function App() {
     ? projectsData
     : projectsData.filter(p => p.category === filter);
 
-  if (isMobile) {
-    return <MobilePortfolio theme={theme} setTheme={setTheme} />;
-  }
-
   return (
     <>
-      {/* 1. Ultra-Premium Glassmorphic HUD Navbar */}
-      <nav className="hud-nav-bar">
+      {/* 1. Main Portfolio (loaded in parallel in background) */}
+      {isMobile ? (
+        <MobilePortfolio theme={theme} setTheme={setTheme} />
+      ) : (
+        <div style={{ width: '100%', height: '100%' }}>
+          {/* 1. Ultra-Premium Glassmorphic HUD Navbar */}
+          <nav className="hud-nav-bar">
         <div className="container hud-nav-content">
           <button onClick={() => setActiveSector("hero")} className="text-accent" style={{ background: 'none', border: 'none', fontWeight: 700, fontSize: '1.25rem', fontFamily: 'Space Grotesk', cursor: 'pointer' }}>SV.</button>
 
@@ -248,26 +293,40 @@ function App() {
             <button onClick={() => { setActiveSector("skills"); setIsMobileMenuOpen(false); }} className={`hud-nav-btn ${activeSector === "skills" ? "hud-nav-btn-active" : ""}`}>Skills</button>
             <button onClick={() => { setActiveSector("credentials"); setIsMobileMenuOpen(false); }} className={`hud-nav-btn ${activeSector === "credentials" ? "hud-nav-btn-active" : ""}`}>Credentials</button>
             <button onClick={() => { setActiveSector("contact"); setIsMobileMenuOpen(false); }} className={`hud-nav-btn ${activeSector === "contact" ? "hud-nav-btn-active" : ""}`}>Contact</button>
-            <div className="theme-toggle-wrapper">
-              <div className="theme-switch" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} title="Toggle Theme">
-                <div className="theme-switch-knob">
-                  {theme === 'dark' ? (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-                  ) : (
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </nav>
+
+      {/* Particles background — desktop only */}
+      {!isMobile && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: 'none',
+        }}>
+          <Particles
+            particleColors={['#C8C8C8', '#E0E0E0', '#A0A0A0', '#F0F0F0']}
+            particleCount={180}
+            particleSpread={8}
+            speed={0.06}
+            particleBaseSize={200}
+            alphaParticles={true}
+            moveParticlesOnHover={true}
+            particleHoverFactor={0.4}
+            sizeRandomness={1.2}
+            disableRotation={false}
+            pixelRatio={Math.min(window.devicePixelRatio, 1.5)}
+          />
+        </div>
+      )}
 
       {/* 2. Full-Screen WebGL Canvas Universe */}
       <div className="canvas-container-3d">
         <Canvas
           camera={{ position: [0, 0, 6], fov: isMobile ? 68 : 55 }}
-          gl={{ antialias: true, alpha: true }}
+          gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+          dpr={[1, 1.5]}
         >
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 5, 5]} intensity={1.2} />
@@ -276,14 +335,10 @@ function App() {
           <SpaceEnvironment sectorCoordinates={sectorCoordinates} theme={theme} />
 
           {/* Smooth camera flight transitions */}
-          <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} />
+          <CameraController activeSector={activeSector} sectorCoordinates={sectorCoordinates} hasEntered={hasEntered} />
 
           {/* 🛸 SECTOR: HERO [0, 0, 0] */}
           <group position={sectorCoordinates.hero}>
-            {/* Neural sphere rendered as native 3D object — always alive, no nested Canvas */}
-            <group position={[-3, 0.2, -2]} scale={1.8}>
-              <NeuralNetwork count={50} theme={theme} />
-            </group>
             <Html
               position={[0, -0.5, 0]}
               transform
@@ -312,8 +367,8 @@ function App() {
                     </p>
                     <div style={{ display: 'flex', gap: '1.25rem', justifyContent: isMobile ? 'center' : 'flex-start', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                       <button onClick={() => setActiveSector("projects")} className="btn btn-premium-glow">View Projects</button>
-                      <a href="./Sai_Nandu_Resume.pdf" download="Sai_Nandu_Resume.pdf" className="btn-neon-border">
-                        <span style={{ marginRight: '8px' }}>📥</span> Download Resume
+                      <a href="./Sai_Nandu_Resume.pdf" download="Sai_Nandu_Resume.pdf" className="btn-neon-border" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                        <Download size={16} style={{ marginRight: '8px' }} /> Download Resume
                       </a>
                     </div>
                   </div>
@@ -431,7 +486,7 @@ function App() {
           {/* 🧬 SECTOR: ABOUT [-12, 5, -8] */}
           <group position={sectorCoordinates.about}>
             <Html
-              position={[0, -1, 0]}
+              position={[0, -0.5, 0]}
               transform
               distanceFactor={4.5}
               className="r3f-html-wrapper"
@@ -439,33 +494,57 @@ function App() {
                 transition: 'opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.6s',
                 opacity: activeSector === 'about' ? 1 : 0,
                 visibility: activeSector === 'about' ? 'visible' : 'hidden',
-                pointerEvents: activeSector === 'about' ? 'auto' : 'none'
+                pointerEvents: activeSector === 'about' ? 'auto' : 'none',
+                width: '1240px'
               }}
             >
-              <div className="glass-hud-card">
-                <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>About Me</h2>
-                <p className="text-secondary" style={{ marginBottom: '1.25rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
-                  Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
-                </p>
+              <div style={{ display: 'flex', gap: '1.5rem', width: '100%', alignItems: 'stretch' }}>
+                {/* Bento Block 1: About Me */}
+                <div className="glass-hud-card" style={{ width: '440px', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+                  <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>About Me</h2>
+                  <p className="text-secondary" style={{ marginBottom: '1.5rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
+                    Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
+                  </p>
 
-                <div className="about-highlights-list" style={{ marginBottom: '2rem' }}>
-                  {[
-                    "B.Tech CSE student specializing in AI & ML",
-                    "Competitive Programming & Problem Solving",
-                    "Machine Learning & GEN AI",
-                    "Open Source and Continuous Learning"
-                  ].map((hl, idx) => (
-                    <div key={idx} className="about-highlight-item">
-                      <span className="about-highlight-dot" />
-                      <span>{hl}</span>
-                    </div>
-                  ))}
+                  <div className="about-highlights-list" style={{ marginTop: 'auto' }}>
+                    {[
+                      "B.Tech CSE student specializing in AI & ML",
+                      "Competitive Programming & Problem Solving",
+                      "Machine Learning & GEN AI",
+                      "Open Source and Continuous Learning"
+                    ].map((hl, idx) => (
+                      <div key={idx} className="about-highlight-item" style={{ fontSize: '0.9rem' }}>
+                        <span className="about-highlight-dot" />
+                        <span>{hl}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
-                <h3 style={{ marginBottom: '1rem', fontFamily: 'Space Grotesk', fontSize: '1.25rem' }}>Academic Path</h3>
-                <div style={{ borderLeft: '2px solid var(--border)', paddingLeft: '1rem' }}>
-                  <h4 style={{ color: 'var(--accent)' }}>BTech in AI & ML</h4>
-                  <p className="text-secondary" style={{ fontSize: '0.9rem' }}>Sreyas Institute (2024 - 2027) · CGPA: 7.2/10</p>
+                {/* Bento Block 2: Experience */}
+                <div className="glass-hud-card" style={{ width: '440px', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+                  <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>Experience</h2>
+                  <div style={{ borderLeft: '2px solid var(--accent)', paddingLeft: '1.25rem', display: 'flex', flexDirection: 'column', height: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '4px', marginBottom: '0.25rem' }}>
+                      <h4 style={{ color: '#FFFFFF', margin: 0, fontSize: '1.05rem', fontWeight: '600' }}>Data Science Intern</h4>
+                      <span className="text-secondary" style={{ fontSize: '0.8rem' }}>Jun 2026 – Present</span>
+                    </div>
+                    <div style={{ fontSize: '0.9rem', fontWeight: '500', color: 'var(--accent)', marginBottom: '0.75rem' }}>XYlofy AI — Remote</div>
+                    <ul style={{ margin: 0, paddingLeft: '1rem', color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5' }}>
+                      <li style={{ marginBottom: '0.5rem' }}>Working on machine learning and data science projects involving data preprocessing, feature engineering, model training, and evaluation using Python.</li>
+                      <li>Applying Pandas, NumPy, Scikit-learn, and Matplotlib for data analysis, visualization, and predictive modeling.</li>
+                    </ul>
+                  </div>
+                </div>
+
+                {/* Bento Block 3: Academic Path */}
+                <div className="glass-hud-card" style={{ width: '320px', padding: '2rem', display: 'flex', flexDirection: 'column' }}>
+                  <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>Academic Path</h2>
+                  <div style={{ borderLeft: '2px solid var(--accent)', paddingLeft: '1.25rem' }}>
+                    <h4 style={{ color: '#FFFFFF', margin: 0, fontSize: '1.05rem', fontWeight: '600' }}>BTech in AI & ML</h4>
+                    <p className="text-secondary" style={{ fontSize: '0.95rem', margin: '0.4rem 0' }}>Sreyas Institute</p>
+                    <span className="text-secondary" style={{ fontSize: '0.85rem' }}>2024 - 2027</span>
+                  </div>
                 </div>
               </div>
             </Html>
@@ -748,17 +827,13 @@ function App() {
                         <span
                           key={i}
                           className="skill-card-uiverse"
-                          style={{
-                            '--accent-color': s.color,
-                            '--accent-color-glow': `${s.color}33`
-                          }}
                         >
                           <span style={{
                             width: '6px',
                             height: '6px',
                             borderRadius: '50%',
-                            backgroundColor: s.color,
-                            boxShadow: `0 0 6px ${s.color}`,
+                            backgroundColor: 'var(--accent)',
+                            boxShadow: '0 0 4px var(--accent)',
                             display: 'inline-block'
                           }} />
                           {s.name}
@@ -789,17 +864,13 @@ function App() {
                         <span
                           key={i}
                           className="skill-card-uiverse"
-                          style={{
-                            '--accent-color': s.color,
-                            '--accent-color-glow': `${s.color}33`
-                          }}
                         >
                           <span style={{
                             width: '6px',
                             height: '6px',
                             borderRadius: '50%',
-                            backgroundColor: s.color,
-                            boxShadow: `0 0 6px ${s.color}`,
+                            backgroundColor: 'var(--accent)',
+                            boxShadow: '0 0 4px var(--accent)',
                             display: 'inline-block'
                           }} />
                           {s.name}
@@ -825,17 +896,13 @@ function App() {
                         <span
                           key={i}
                           className="skill-card-uiverse"
-                          style={{
-                            '--accent-color': s.color,
-                            '--accent-color-glow': `${s.color}33`
-                          }}
                         >
                           <span style={{
                             width: '6px',
                             height: '6px',
                             borderRadius: '50%',
-                            backgroundColor: s.color,
-                            boxShadow: `0 0 6px ${s.color}`,
+                            backgroundColor: 'var(--accent)',
+                            boxShadow: '0 0 4px var(--accent)',
                             display: 'inline-block'
                           }} />
                           {s.name}
@@ -925,18 +992,19 @@ function App() {
                   {/* Left: Info cards */}
                   <div className="contact-info-column">
                     <a href="https://mail.google.com/mail/?view=cm&to=vajhalasainandu@gmail.com" target="_blank" rel="noreferrer" className="contact-info-card" style={{ textDecoration: 'none' }}>
-                      <div className="contact-icon-wrap" style={{ background: 'rgba(23, 178, 106, 0.12)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
                       </div>
                       <div>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Email</span>
                         <span style={{ display: 'block', color: 'var(--text-primary)', fontSize: '0.95rem', marginTop: '2px' }}>vajhalasainandu@gmail.com</span>
                       </div>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
                     </a>
 
                     <div className="contact-info-card">
-                      <div className="contact-icon-wrap" style={{ background: 'rgba(66, 133, 244, 0.12)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4285F4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
                       </div>
                       <div>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Location</span>
@@ -945,8 +1013,8 @@ function App() {
                     </div>
 
                     <div className="contact-info-card">
-                      <div className="contact-icon-wrap" style={{ background: 'rgba(168, 85, 247, 0.12)' }}>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A855F7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" /><path d="M2 12h20" /></svg>
                       </div>
                       <div>
                         <span style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', letterSpacing: '1.5px', textTransform: 'uppercase', fontFamily: 'Space Grotesk' }}>Timezone</span>
@@ -957,8 +1025,10 @@ function App() {
 
                   {/* Right: Social links */}
                   <div className="contact-social-column">
-                    <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="contact-social-card contact-social-github">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+                    <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="contact-social-card">
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+                      </div>
                       <div>
                         <span className="contact-social-label">GitHub</span>
                         <span className="contact-social-handle">@SaiNanduVajhala</span>
@@ -966,8 +1036,10 @@ function App() {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
                     </a>
 
-                    <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="contact-social-card contact-social-linkedin">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                    <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="contact-social-card">
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+                      </div>
                       <div>
                         <span className="contact-social-label">LinkedIn</span>
                         <span className="contact-social-handle">vajhala-sai-nandu</span>
@@ -975,8 +1047,10 @@ function App() {
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginLeft: 'auto', opacity: 0.4 }}><path d="M7 17l9.2-9.2M17 17V7H7" /></svg>
                     </a>
 
-                    <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer" className="contact-social-card contact-social-kaggle">
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.281.18.046.149.034.238-.036.27l-6.555 6.344 6.836 8.507c.095.104.117.208.075.328z" /></svg>
+                    <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer" className="contact-social-card">
+                      <div className="contact-icon-wrap" style={{ background: 'rgba(200, 200, 200, 0.10)' }}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.281.18.046.149.034.238-.036.27l-6.555 6.344 6.836 8.507c.095.104.117.208.075.328z" /></svg>
+                      </div>
                       <div>
                         <span className="contact-social-label">Kaggle</span>
                         <span className="contact-social-handle">vajhalasainandu</span>
@@ -997,6 +1071,117 @@ function App() {
 
         </Canvas>
       </div>
+      </div>
+      )}
+
+      {/* 2. Splash Screen Overlay (slides out / blurs on enter) */}
+      <AnimatePresence>
+        {!hasEntered && (
+          <motion.div
+            key="splash"
+            initial={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.08 }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+            style={{
+              position: 'fixed',
+              inset: '-10px',
+              zIndex: 99999,
+              backgroundColor: '#000000',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center',
+              alignItems: 'center',
+              color: '#FFFFFF',
+              fontFamily: "'Space Grotesk', sans-serif",
+              textAlign: 'center',
+              padding: '2rem',
+              overflow: 'hidden',
+              pointerEvents: 'auto',
+              willChange: 'transform, opacity'
+            }}
+          >
+            {/* Static, even, and beautifully spread-out starfield */}
+            <div style={{ position: 'absolute', inset: 0, zIndex: 1, pointerEvents: 'none' }}>
+              {preloaderStars.map((star, idx) => (
+                <div
+                  key={idx}
+                  className="preloader-star"
+                  style={{
+                    left: star.left,
+                    top: star.top,
+                    width: star.size,
+                    height: star.size,
+                    backgroundColor: star.color,
+                    opacity: star.opacity,
+                    '--star-color': star.color,
+                    '--twinkle-duration': star.twinkleDuration,
+                    '--twinkle-delay': star.twinkleDelay,
+                  }}
+                />
+              ))}
+            </div>
+
+            <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <motion.h1
+                initial={{ opacity: 0, y: -25 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.7 }}
+                style={{
+                  fontSize: 'clamp(2.2rem, 6vw, 3.8rem)',
+                  fontWeight: 700,
+                  marginBottom: '0.5rem',
+                  letterSpacing: '-0.02em',
+                  textShadow: '0 0 20px rgba(255, 255, 255, 0.25)'
+                }}
+              >
+                Ad Astra Per Aspera
+              </motion.h1>
+              <motion.p
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.35, duration: 0.7 }}
+                style={{
+                  fontSize: '1.25rem',
+                  color: 'var(--text-secondary)',
+                  marginBottom: '2.5rem',
+                  fontStyle: 'italic',
+                  textShadow: '0 0 10px rgba(255, 255, 255, 0.1)'
+                }}
+              >
+                To the stars through hardships.
+              </motion.p>
+              <motion.button
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                whileHover={{ 
+                  scale: 1.04, 
+                  borderColor: 'rgba(255, 255, 255, 0.65)', 
+                  boxShadow: '0 0 25px rgba(255, 255, 255, 0.35), inset 0 0 8px rgba(255, 255, 255, 0.15)',
+                  transition: { duration: 0.1, delay: 0 }
+                }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setHasEntered(true)}
+                style={{
+                  padding: '12px 36px',
+                  fontSize: '1.05rem',
+                  fontWeight: 600,
+                  backgroundColor: 'rgba(10, 10, 10, 0.75)',
+                  color: 'var(--text-primary)',
+                  border: '1px solid var(--border)',
+                  borderRadius: '9999px',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  boxShadow: '0 0 15px rgba(255, 255, 255, 0.04)'
+                }}
+              >
+                Enter
+              </motion.button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

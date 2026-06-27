@@ -1,12 +1,10 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 import { useState, useEffect } from 'react';
 import './Stack.css';
 
 function CardRotate({ children, onSendToBack, sensitivity, disableDrag = false }) {
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const rotateX = useTransform(y, [-100, 100], [60, -60]);
-  const rotateY = useTransform(x, [-100, 100], [-60, 60]);
 
   function handleDragEnd(_, info) {
     if (Math.abs(info.offset.x) > sensitivity || Math.abs(info.offset.y) > sensitivity) {
@@ -28,10 +26,10 @@ function CardRotate({ children, onSendToBack, sensitivity, disableDrag = false }
   return (
     <motion.div
       className="card-rotate"
-      style={{ x, y, rotateX, rotateY }}
+      style={{ x, y }}
       drag
       dragConstraints={{ top: 0, right: 0, bottom: 0, left: 0 }}
-      dragElastic={0.6}
+      dragElastic={0.5}
       whileTap={{ cursor: 'grabbing' }}
       onDragEnd={handleDragEnd}
     >
