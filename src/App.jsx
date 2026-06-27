@@ -11,7 +11,7 @@ import SpaceEnvironment from './components/SpaceEnvironment';
 import Particles from './components/Particles';
 import deloitteSimImg from './assets/deloitte_simulation.png';
 import MobilePortfolio from './components/MobilePortfolio';
-import { ShieldCheck, Download } from 'lucide-react';
+import { ShieldCheck, Brain, Zap, Database, Code, Download } from 'lucide-react';
 
 // Predefined 3D coordinates for each sector in the Latent Space
 const sectorCoordinates = {
@@ -367,7 +367,7 @@ function App() {
                         </p>
                         <div style={{ display: 'flex', gap: '1.25rem', justifyContent: isMobile ? 'center' : 'flex-start', flexWrap: isMobile ? 'wrap' : 'nowrap' }}>
                           <button onClick={() => setActiveSector("projects")} className="btn btn-premium-glow">View Projects</button>
-                          <a href="./Vajhala_Sai_Nandu_AI_ML_Engineer_Resume.pdf" download="Vajhala_Sai_Nandu_AI_ML_Engineer_Resume.pdf" className="btn-neon-border" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                          <a href="./Sai_Nandu_Resume.pdf" download="Sai_Nandu_Resume.pdf" className="btn-neon-border" style={{ display: 'inline-flex', alignItems: 'center' }}>
                             <Download size={16} style={{ marginRight: '8px' }} /> Download Resume
                           </a>
                         </div>
