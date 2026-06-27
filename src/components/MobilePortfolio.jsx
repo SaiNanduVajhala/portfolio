@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Home, 
   Briefcase, 
-  Cpu, 
   Terminal as TerminalIcon, 
   Mail, 
   Sun, 
@@ -13,7 +12,11 @@ import {
   MapPin,
   Clock,
   ChevronRight,
-  Code
+  Code,
+  Shield,
+  Brain,
+  Zap,
+  Database
 } from 'lucide-react';
 import './MobilePortfolio.css';
 
@@ -35,7 +38,7 @@ const projectsData = [
   {
     id: 1,
     title: "Emotion-Aware Multimodal Voice Assistant",
-    description: "A full-duplex conversational AI system using FastAPI and WebSockets for real-time bi-directional audio/video. Integrated MediaPipe/DeepFace for emotion analysis with end-to-end latency under 1.5s.",
+    description: "A low-latency, full-duplex AI voice assistant combining real-time face tracking, demographic locking, and aggressive software echo cancellation. Adapts tone and voice dynamically based on user emotions and age.",
     tags: ["Python", "FastAPI", "WebSockets", "OpenAI"],
     category: "AI Agents",
     github: "https://github.com/SaiNanduVajhala/Voice_Model_with_full_duplex"
@@ -43,7 +46,7 @@ const projectsData = [
   {
     id: 2,
     title: "CrewAI Trading Agent",
-    description: "Multi-agent Python system using CrewAI that automatically generates daily US financial market summaries. Features specialized agents for search, summarizing, and reporting.",
+    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
     tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
     category: "AI Agents",
     github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
@@ -51,7 +54,7 @@ const projectsData = [
   {
     id: 3,
     title: "lexiRead",
-    description: "A Dyslexic-Friendly Reading Tool designed to improve accessibility and reading comprehension with custom overlays and font styling.",
+    description: "An AI-powered reading companion designed to instantly transform complex, dense texts into clear, digestible, and visually stress-free formats using Google Gemma. Features bionic typography and Socratic learning.",
     tags: ["HTML", "CSS", "JavaScript", "Accessibility"],
     category: "Accessibility",
     github: "https://github.com/SaiNanduVajhala/lexiRead"
@@ -59,18 +62,18 @@ const projectsData = [
   {
     id: 4,
     title: "Market Mood Trading Analysis",
-    description: "A data-driven analysis proving the profitability of buying fear and selling greed in crypto markets using historical sentiment metrics.",
+    description: "An exploratory data analysis (EDA) investigating the relationship between cryptocurrency trader performance and market sentiment. Merges daily sentiment with historical execution data from Hyperliquid.",
     tags: ["Python", "Data Analysis", "Trading Analytics"],
     category: "Data Science",
     github: "https://github.com/SaiNanduVajhala/market-mood-trading-analysis"
   },
   {
     id: 5,
-    title: "Semantic Search Engine",
-    description: "An advanced semantic search engine leveraging NLP sentence embeddings and high-dimensional vector similarity mapping to search documents conceptually rather than by exact keywords.",
-    tags: ["Python", "NLP", "SentenceTransformers", "Data Science"],
+    title: "GPT-2 Code Completion using CodeXGLUE",
+    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
+    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
     category: "Data Science",
-    github: "https://github.com/SaiNanduVajhala/Semantic-Search"
+    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
   }
 ];
 
@@ -78,6 +81,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
   const [activeTab, setActiveTab] = useState('home');
   const [cardFlipped, setCardFlipped] = useState(false);
   const [projectIndex, setProjectIndex] = useState(0);
+  const [slideDirection, setSlideDirection] = useState(0);
   
   // Terminal state
   const [terminalHistory, setTerminalHistory] = useState([
@@ -109,14 +113,14 @@ export default function MobilePortfolio({ theme, setTheme }) {
         { text: "  clear     - Clean up the terminal console screen", type: "info" }
       );
     } else if (cmd === "about") {
-      newHistory.push({ text: "Sai Nandu Vajhala: AI/ML Engineering student specializing in building automated multi-agent networks, real-time voice intelligence, and cognitive full-duplex systems.", type: "success" });
+      newHistory.push({ text: "Vajhala Sai Nandu: B.Tech CSE student specializing in AI/ML, competitive programming, algorithmic problem-solving, and practical GenAI applications.", type: "success" });
     } else if (cmd === "projects") {
       newHistory.push(
         { text: "1. Emotion-Aware Voice Assistant (FastAPI, WebSockets)", type: "success" },
         { text: "2. CrewAI Trading Agent (Autonomous summarizer)", type: "success" },
         { text: "3. lexiRead (Accessibility engine for dyslexia)", type: "success" },
         { text: "4. Market Mood Analysis (Crypto Fear & Greed)", type: "success" },
-        { text: "5. Semantic Search Engine (NLP sentence vector search)", type: "success" }
+        { text: "5. GPT-2 Code Completion (Transformer code generation)", type: "success" }
       );
     } else if (cmd === "skills") {
       newHistory.push({ text: "Languages: Python, Java, R, C | Tech: React, FastAPI, Node.js, CrewAI | DB: PostgreSQL, MongoDB, MySQL", type: "success" });
@@ -149,6 +153,33 @@ export default function MobilePortfolio({ theme, setTheme }) {
     initial: { opacity: 0, x: 20 },
     animate: { opacity: 1, x: 0, transition: { duration: 0.25, ease: "easeOut" } },
     exit: { opacity: 0, x: -20, transition: { duration: 0.2 } }
+  };
+
+  // Micro-animations for project cards sliding
+  const cardSlideVariants = {
+    enter: (direction) => ({
+      x: direction < 0 ? -120 : direction > 0 ? 120 : 0,
+      opacity: 0,
+      scale: 0.96
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+      scale: 1,
+      transition: {
+        duration: 0.25,
+        ease: [0.4, 0, 0.2, 1]
+      }
+    },
+    exit: (direction) => ({
+      x: direction < 0 ? 120 : direction > 0 ? -120 : 0,
+      opacity: 0,
+      scale: 0.96,
+      transition: {
+        duration: 0.22,
+        ease: [0.4, 0, 1, 1]
+      }
+    })
   };
 
   return (
@@ -196,19 +227,23 @@ export default function MobilePortfolio({ theme, setTheme }) {
               <div className="mobile-id-container" onClick={() => setCardFlipped(!cardFlipped)}>
                 <div className={`mobile-id-card ${cardFlipped ? 'is-flipped' : ''}`}>
                   {/* Front Face */}
-                  <div className="mobile-id-face mobile-id-front">
+                  <div className="mobile-id-face mobile-id-front" style={{ pointerEvents: cardFlipped ? 'none' : 'auto' }}>
                     <div className="mobile-id-header">
                       <span className="mobile-id-header-title">Portfolio ID</span>
                       <span className="mobile-id-header-sub">AI/ML Engineering</span>
                     </div>
                     <div className="mobile-id-avatar">SN</div>
-                    <span className="mobile-id-name">Sai Nandu Vajhala</span>
-                    <span className="mobile-id-role">AI/ML Engineer</span>
-                    <div className="mobile-id-divider" />
-                    <p className="mobile-id-details">
-                      BTech · Sreyas Institute<br />
-                      Hyderabad, India
-                    </p>
+                    
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, marginTop: '20px', marginBottom: '10px' }}>
+                      <span className="mobile-id-name">Sai Nandu Vajhala</span>
+                      <span className="mobile-id-role">AI/ML Engineer</span>
+                      <div className="mobile-id-divider" />
+                      <p className="mobile-id-details">
+                        BTech · Sreyas Institute<br />
+                        Hyderabad, India
+                      </p>
+                    </div>
+
                     <div className="mobile-id-barcode">
                       {[3, 5, 2, 7, 4, 6, 3, 5, 2, 4, 6, 3, 7, 5, 2, 4, 6, 3, 5, 4].map((h, i) => (
                         <span key={i} style={{ width: i % 3 === 0 ? '3px' : '1.5px', height: `${h * 1.5}px` }} />
@@ -217,9 +252,9 @@ export default function MobilePortfolio({ theme, setTheme }) {
                   </div>
 
                   {/* Back Face (Full contact rows like desktop) */}
-                  <div className="mobile-id-face mobile-id-back">
+                  <div className="mobile-id-face mobile-id-back" style={{ pointerEvents: cardFlipped ? 'auto' : 'none' }}>
                     <div>
-                      <h4 className="mobile-id-back-title">🛡️ Contact Details</h4>
+                      <h4 className="mobile-id-back-title"><Shield size={16} /> Contact Details</h4>
                       <div className="mobile-id-contact-list">
                         <div className="mobile-id-contact-item">
                           <div className="mobile-id-contact-icon"><Mail size={14} /></div>
@@ -289,51 +324,124 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 <Briefcase size={20} className="text-accent" /> Featured Projects
               </div>
 
-              {/* Single Project Display */}
-              {projectsData[projectIndex] && (
-                <div className="mobile-project-card">
-                  <div>
-                    <span className="mobile-project-category">
-                      {projectsData[projectIndex].category}
-                    </span>
-                    <h3 className="mobile-project-title">
-                      {projectsData[projectIndex].title}
-                    </h3>
-                    <p className="mobile-project-desc">
-                      {projectsData[projectIndex].description}
-                    </p>
-                  </div>
-
-                  <div>
-                    <div className="mobile-project-tags">
-                      {projectsData[projectIndex].tags.map((tag, idx) => (
-                        <span key={idx} className="mobile-project-tag">{tag}</span>
-                      ))}
-                    </div>
-
-                    <a 
-                      href={projectsData[projectIndex].github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="mobile-btn-primary"
-                      style={{ height: '44px' }}
+              {/* Slider wrapper to overflow hide moving cards */}
+              <div style={{ width: '100%', overflow: 'hidden', borderRadius: '16px', marginBottom: '16px' }}>
+                <AnimatePresence mode="wait" custom={slideDirection}>
+                  {projectsData[projectIndex] && (
+                    <motion.div
+                      key={projectsData[projectIndex].id}
+                      custom={slideDirection}
+                      variants={cardSlideVariants}
+                      initial="enter"
+                      animate="center"
+                      exit="exit"
+                      className="mobile-project-card"
+                      style={{ margin: 0 }}
                     >
-                      <Code size={16} /> View Code
-                    </a>
-                  </div>
-                </div>
-              )}
+                      <div>
+                        <span className="mobile-project-category">
+                          {projectsData[projectIndex].category}
+                        </span>
+                        <h3 className="mobile-project-title">
+                          {projectsData[projectIndex].title}
+                        </h3>
+                        <p className="mobile-project-desc">
+                          {projectsData[projectIndex].description}
+                        </p>
+                      </div>
 
-              {/* Carousel Indicators */}
-              <div className="mobile-carousel-dots">
-                {projectsData.map((_, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => setProjectIndex(idx)}
-                    className={`mobile-carousel-dot ${idx === projectIndex ? 'mobile-carousel-dot-active' : ''}`}
-                    aria-label={`Go to project ${idx + 1}`}
-                  />
-                ))}
+                      <div>
+                        <div className="mobile-project-tags">
+                          {projectsData[projectIndex].tags.map((tag, idx) => (
+                            <span key={idx} className="mobile-project-tag">{tag}</span>
+                          ))}
+                        </div>
+
+                        <a 
+                          href={projectsData[projectIndex].github}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="mobile-btn-primary"
+                          style={{ height: '44px' }}
+                        >
+                          <Code size={16} /> View Code
+                        </a>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+
+              {/* Carousel Indicators & Side Arrow Navigation Controls */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '4px 0 16px 0' }}>
+                {/* Left Arrow Button */}
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => {
+                    setSlideDirection(-1);
+                    setProjectIndex((prev) => (prev === 0 ? projectsData.length - 1 : prev - 1));
+                  }}
+                  style={{
+                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                  aria-label="Previous project"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
+                </motion.button>
+
+                {/* Dots indicator */}
+                <div className="mobile-carousel-dots" style={{ margin: 0 }}>
+                  {projectsData.map((_, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => {
+                        setSlideDirection(idx > projectIndex ? 1 : -1);
+                        setProjectIndex(idx);
+                      }}
+                      className={`mobile-carousel-dot ${idx === projectIndex ? 'mobile-carousel-dot-active' : ''}`}
+                      aria-label={`Go to project ${idx + 1}`}
+                    />
+                  ))}
+                </div>
+
+                {/* Right Arrow Button */}
+                <motion.button
+                  whileTap={{ scale: 0.85 }}
+                  onClick={() => {
+                    setSlideDirection(1);
+                    setProjectIndex((prev) => (prev === projectsData.length - 1 ? 0 : prev + 1));
+                  }}
+                  style={{
+                    borderRadius: '50%',
+                    width: '38px',
+                    height: '38px',
+                    padding: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    border: '1px solid var(--border)',
+                    background: 'var(--bg-secondary)',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    boxShadow: 'var(--shadow-sm)'
+                  }}
+                  aria-label="Next project"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
+                </motion.button>
               </div>
             </motion.div>
           )}
@@ -357,11 +465,22 @@ export default function MobilePortfolio({ theme, setTheme }) {
               <div className="mobile-card">
                 <h3 className="mobile-section-title">About Me</h3>
                 <p className="mobile-about-text">
-                  I am a highly motivated student pursuing a BTech in Artificial Intelligence and Machine Learning at <b>Sreyas Institute of Engineering and Technology.</b>
+                  Hello there! I'm Vajhala Sai Nandu, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
                 </p>
-                <p className="mobile-about-text">
-                  I'm passionate about emerging cognitive paradigms, actively constructing autonomous agent networks, real-time voice architectures, and high-dimensional semantic search engines.
-                </p>
+                
+                <div className="about-highlights-list" style={{ margin: '1.25rem 0' }}>
+                  {[
+                    "B.Tech CSE student specializing in AI & ML",
+                    "Competitive Programming & Problem Solving",
+                    "Machine Learning & GEN AI",
+                    "Open Source and Continuous Learning"
+                  ].map((hl, idx) => (
+                    <div key={idx} className="about-highlight-item" style={{ fontSize: '0.85rem' }}>
+                      <span className="about-highlight-dot" />
+                      <span>{hl}</span>
+                    </div>
+                  ))}
+                </div>
                 <div className="mobile-education">
                   <span className="mobile-education-degree">BTech in AI &amp; ML</span>
                   <div className="mobile-education-school">Sreyas Institute (2024 - 2027) · CGPA: 7.2</div>
@@ -370,10 +489,12 @@ export default function MobilePortfolio({ theme, setTheme }) {
 
               {/* Skills group card */}
               <div className="mobile-card">
-                <h3 className="mobile-section-title"><Cpu size={20} className="text-accent" /> Technical Stack</h3>
+                <h3 className="mobile-section-title"><Code size={20} className="text-accent" /> Technical Stack</h3>
                 
                 <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title">🧠 AI/ML &amp; Data Science</div>
+                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Brain size={14} className="text-accent" /> AI/ML &amp; Data Science
+                  </div>
                   <div className="mobile-skill-grid">
                     {[
                       { name: "Python", color: "#3776AB" },
@@ -393,7 +514,9 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </div>
 
                 <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title">⚡ Backend &amp; Web</div>
+                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Zap size={14} className="text-accent" /> Backend &amp; Web
+                  </div>
                   <div className="mobile-skill-grid">
                     {[
                       { name: "FastAPI", color: "#009688" },
@@ -412,7 +535,9 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </div>
 
                 <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title">🗄️ Databases &amp; DevOps</div>
+                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Database size={14} className="text-accent" /> Databases &amp; DevOps
+                  </div>
                   <div className="mobile-skill-grid">
                     {[
                       { name: "PostgreSQL", color: "#4169E1" },
@@ -570,7 +695,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
 
               <a href="https://www.linkedin.com/in/vajhala-sai-nandu/" target="_blank" rel="noreferrer" className="mobile-contact-card">
                 <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(66, 133, 244, 0.12)' }}>
-                  <ExternalLink size={20} style={{ color: '#4285F4' }} />
+                  <LinkedInIcon size={20} style={{ color: '#4285F4' }} />
                 </div>
                 <div className="mobile-contact-details">
                   <span className="mobile-contact-label">LinkedIn</span>
@@ -580,12 +705,23 @@ export default function MobilePortfolio({ theme, setTheme }) {
               </a>
 
               <a href="https://github.com/SaiNanduVajhala" target="_blank" rel="noreferrer" className="mobile-contact-card">
-                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(255, 255, 255, 0.12)' }}>
-                  <Code size={20} style={{ color: '#FCFCFD' }} />
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'var(--border)' }}>
+                  <GitHubIcon size={20} style={{ color: 'var(--text-primary)' }} />
                 </div>
                 <div className="mobile-contact-details">
                   <span className="mobile-contact-label">GitHub</span>
                   <span className="mobile-contact-value">@SaiNanduVajhala</span>
+                </div>
+                <ChevronRight size={16} className="text-secondary" style={{ marginLeft: 'auto' }} />
+              </a>
+
+              <a href="https://www.kaggle.com/vajhalasainandu" target="_blank" rel="noreferrer" className="mobile-contact-card">
+                <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(32, 190, 255, 0.12)' }}>
+                  <KaggleIcon size={20} style={{ color: '#20BEFF' }} />
+                </div>
+                <div className="mobile-contact-details">
+                  <span className="mobile-contact-label">Kaggle</span>
+                  <span className="mobile-contact-value">vajhalasainandu</span>
                 </div>
                 <ChevronRight size={16} className="text-secondary" style={{ marginLeft: 'auto' }} />
               </a>
@@ -625,7 +761,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
           onClick={() => setActiveTab('skills')} 
           className={`mobile-nav-item ${activeTab === 'skills' ? 'mobile-nav-item-active' : ''}`}
         >
-          <Cpu size={20} />
+          <Code size={20} />
           <span>Skills</span>
           {activeTab === 'skills' && <motion.div layoutId="navDot" className="mobile-nav-dot" />}
         </button>

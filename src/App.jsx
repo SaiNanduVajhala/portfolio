@@ -10,6 +10,7 @@ import SpaceEnvironment from './components/SpaceEnvironment';
 import NeuralNetwork from './components/NeuralSphere';
 import deloitteSimImg from './assets/deloitte_simulation.png';
 import MobilePortfolio from './components/MobilePortfolio';
+import { ShieldCheck, Brain, Zap, Database, Code } from 'lucide-react';
 
 // Predefined 3D coordinates for each sector in the Latent Space
 const sectorCoordinates = {
@@ -27,7 +28,7 @@ const projectsData = [
   {
     id: 1,
     title: "Emotion-Aware Multimodal Voice Assistant",
-    description: "A full-duplex conversational AI system using FastAPI and WebSockets for real-time bi-directional audio/video. Integrated MediaPipe/DeepFace for emotion analysis with end-to-end latency under 1.5s.",
+    description: "A low-latency, full-duplex AI voice assistant combining real-time face tracking, demographic locking, and aggressive software echo cancellation. Adapts tone and voice dynamically based on user emotions and age.",
     tags: ["Python", "FastAPI", "WebSockets", "OpenAI"],
     category: "ai-agents",
     github: "https://github.com/SaiNanduVajhala/Voice_Model_with_full_duplex"
@@ -35,7 +36,7 @@ const projectsData = [
   {
     id: 2,
     title: "CrewAI Trading Agent",
-    description: "Multi-agent Python system using CrewAI that automatically generates daily US financial market summaries. Features specialized agents for search, summarizing, and reporting.",
+    description: "A multi-agent Python system using the CrewAI framework that automatically generates daily US financial market summaries. Features specialized agents for data collection, analysis, and bilingual Hindi/English reports.",
     tags: ["Python", "CrewAI", "Groq LLM", "YAML"],
     category: "ai-agents",
     github: "https://github.com/SaiNanduVajhala/CrewAI-Trading-Agent"
@@ -43,7 +44,7 @@ const projectsData = [
   {
     id: 3,
     title: "lexiRead",
-    description: "A Dyslexic-Friendly Reading Tool designed to improve accessibility and reading comprehension with custom overlays and font styling.",
+    description: "An AI-powered reading companion designed to instantly transform complex, dense texts into clear, digestible, and visually stress-free formats using Google Gemma. Features bionic typography and Socratic learning.",
     tags: ["HTML", "CSS", "JavaScript", "Accessibility"],
     category: "accessibility",
     github: "https://github.com/SaiNanduVajhala/lexiRead"
@@ -51,18 +52,18 @@ const projectsData = [
   {
     id: 4,
     title: "Market Mood Trading Analysis",
-    description: "A data-driven analysis proving the profitability of buying fear and selling greed in crypto markets using historical sentiment metrics.",
+    description: "An exploratory data analysis (EDA) investigating the relationship between cryptocurrency trader performance and market sentiment. Merges daily sentiment with historical execution data from Hyperliquid.",
     tags: ["Python", "Data Analysis", "Trading Analytics"],
     category: "data-science",
     github: "https://github.com/SaiNanduVajhala/market-mood-trading-analysis"
   },
   {
     id: 5,
-    title: "Semantic Search Engine",
-    description: "An advanced semantic search engine leveraging NLP sentence embeddings and high-dimensional vector similarity mapping to search documents conceptually rather than by exact keywords.",
-    tags: ["Python", "NLP", "SentenceTransformers", "Data Science"],
+    title: "GPT-2 Code Completion using CodeXGLUE",
+    description: "Fine-tuning GPT-2 for Python source code completion using the CodeXGLUE dataset. Achieved a validation perplexity of 3.28 using PyTorch, Hugging Face Transformers, mixed precision (FP16), and gradient checkpointing.",
+    tags: ["Python", "PyTorch", "Hugging Face", "GPT-2", "NLP"],
     category: "data-science",
-    github: "https://github.com/SaiNanduVajhala/Semantic-Search"
+    github: "https://github.com/SaiNanduVajhala/code-completion-gpt2"
   }
 ];
 
@@ -92,6 +93,27 @@ const slideVariants = {
   })
 };
 
+// Custom inline SVG icons matching mobile view
+const MailIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
+);
+
+const MapPinIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" /><circle cx="12" cy="10" r="3" /></svg>
+);
+
+const LinkedInIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" /></svg>
+);
+
+const GitHubIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" /></svg>
+);
+
+const KaggleIcon = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18.825 23.859c-.022.092-.117.141-.281.141h-3.139c-.187 0-.351-.082-.492-.248l-5.178-6.589-1.448 1.374v5.111c0 .235-.117.352-.351.352H5.505c-.236 0-.354-.117-.354-.352V.353c0-.233.118-.353.354-.353h2.431c.234 0 .351.12.351.353v14.343l6.203-6.272c.165-.165.33-.246.495-.246h3.239c.144 0 .236.06.281.18.046.149.034.238-.036.27l-6.555 6.344 6.836 8.507c.095.104.117.208.075.328z" /></svg>
+);
+
 function App() {
   const [theme, setTheme] = useState("light");
   const [activeSector, setActiveSector] = useState("hero");
@@ -113,107 +135,6 @@ function App() {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
-  useEffect(() => {
-    setCurrentProjectIndex(0);
-    setSlideDirection(0);
-  }, [filter]);
-
-  // Live GitHub Stats State with cached fallbacks
-  const [githubStats, setGithubStats] = useState({
-    repos: 12,
-    stars: 0,
-    commits: 101,
-    prs: 4,
-    issues: 2,
-    contributions: 121,
-    currentStreak: 0,
-    longestStreak: 5,
-    grade: "C",
-    languages: [
-      { name: "Python", percentage: 55.60, color: "#3572A5" },
-      { name: "TypeScript", percentage: 19.25, color: "#3178C6" },
-      { name: "HTML", percentage: 19.16, color: "#E34F26" },
-      { name: "JavaScript", percentage: 5.12, color: "#F7DF1E" },
-      { name: "PLpgSQL", percentage: 0.70, color: "#0064a5" },
-      { name: "CSS", percentage: 0.17, color: "#563d7c" }
-    ],
-    loading: true
-  });
-
-  useEffect(() => {
-    const fetchGithubData = async () => {
-      try {
-        const profileRes = await fetch("https://api.github.com/users/SaiNanduVajhala");
-        let profileData = null;
-        if (profileRes.ok) {
-          profileData = await profileRes.json();
-        }
-
-        const reposRes = await fetch("https://api.github.com/users/SaiNanduVajhala/repos?per_page=100");
-        const reposData = reposRes.ok ? await reposRes.json() : [];
-
-        let totalStars = 0;
-        const langCounts = {};
-
-        reposData.forEach(repo => {
-          totalStars += repo.stargazers_count;
-          if (repo.language) {
-            langCounts[repo.language] = (langCounts[repo.language] || 0) + 1;
-          }
-        });
-
-        const totalLangs = Object.values(langCounts).reduce((a, b) => a + b, 0);
-        let languages = [];
-        if (totalLangs > 0) {
-          languages = Object.entries(langCounts)
-            .map(([name, count]) => {
-              let color = "#8b949e";
-              if (name === "Python") color = "#3572A5";
-              else if (name === "TypeScript") color = "#3178C6";
-              else if (name === "HTML") color = "#E34F26";
-              else if (name === "JavaScript") color = "#F7DF1E";
-              else if (name === "PLpgSQL") color = "#0064a5";
-              else if (name === "CSS") color = "#563d7c";
-              else if (name === "Java") color = "#b07219";
-              else if (name === "C++") color = "#f34b7d";
-
-              return {
-                name,
-                percentage: parseFloat(((count / totalLangs) * 100).toFixed(2)),
-                color
-              };
-            })
-            .sort((a, b) => b.percentage - a.percentage);
-        }
-
-        setGithubStats({
-          repos: profileData ? profileData.public_repos : 12,
-          stars: totalStars || 0,
-          commits: 101,
-          prs: 4,
-          issues: 2,
-          contributions: 121,
-          currentStreak: 0,
-          longestStreak: 5,
-          grade: totalStars > 5 ? "A" : "C",
-          languages: languages.length > 0 ? languages : [
-            { name: "Python", percentage: 55.60, color: "#3572A5" },
-            { name: "TypeScript", percentage: 19.25, color: "#3178C6" },
-            { name: "HTML", percentage: 19.16, color: "#E34F26" },
-            { name: "JavaScript", percentage: 5.12, color: "#F7DF1E" },
-            { name: "PLpgSQL", percentage: 0.70, color: "#0064a5" },
-            { name: "CSS", percentage: 0.17, color: "#563d7c" }
-          ],
-          loading: false
-        });
-      } catch (err) {
-        console.warn("Failed loading live GitHub stats, using cached data:", err);
-        setGithubStats(prev => ({ ...prev, loading: false }));
-      }
-    };
-
-    fetchGithubData();
-  }, []);
 
   // Terminal Simulator State
   const [terminalHistory, setTerminalHistory] = useState([
@@ -255,14 +176,14 @@ function App() {
         { text: "  clear     - Clean up the terminal console screen", type: "info" }
       );
     } else if (cmd === "about") {
-      newHistory.push({ text: "Sai Nandu Vajhala: AI/ML Engineering student specializing in building automated multi-agent networks, real-time voice intelligence, and cognitive full-duplex systems.", type: "success" });
+      newHistory.push({ text: "Vajhala Sai Nandu: B.Tech CSE student specializing in AI/ML, competitive programming, algorithmic problem-solving, and practical GenAI applications.", type: "success" });
     } else if (cmd === "projects") {
       newHistory.push(
         { text: "1. Emotion-Aware Multimodal Voice Assistant (FastAPI, WebSockets)", type: "success" },
         { text: "2. CrewAI Trading Agent (Autonomous summarizer)", type: "success" },
         { text: "3. lexiRead (Accessibility engine for dyslexia)", type: "success" },
         { text: "4. Market Mood Trading Analysis (Crypto Fear & Greed analyzer)", type: "success" },
-        { text: "5. Semantic Search Engine (NLP semantic vector search)", type: "success" }
+        { text: "5. GPT-2 Code Completion using CodeXGLUE (Transformer code generation)", type: "success" }
       );
     } else if (cmd === "skills") {
       newHistory.push({ text: "Languages: Python, Java, R, C | Tech: React, FastAPI, Node.js, CrewAI | DB: PostgreSQL, MongoDB, MySQL", type: "success" });
@@ -445,10 +366,10 @@ function App() {
                           >
                             <div className="id-card-back-header">
                               <span className="id-card-back-header-dot" />
-                              <span className="id-card-back-header-label">Contact Details</span>
+                              <span className="id-card-back-header-label">CONTACT DETAILS</span>
                             </div>
                             <div className="id-card-contact-row">
-                              <div className="id-card-contact-icon">✉️</div>
+                              <div className="id-card-contact-icon"><MailIcon /></div>
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">Email</span>
                                 <span className="id-card-contact-value">
@@ -457,14 +378,14 @@ function App() {
                               </div>
                             </div>
                             <div className="id-card-contact-row">
-                              <div className="id-card-contact-icon">📍</div>
+                              <div className="id-card-contact-icon"><MapPinIcon /></div>
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">Location</span>
                                 <span className="id-card-contact-value">Hyderabad, India</span>
                               </div>
                             </div>
                             <div className="id-card-contact-row">
-                              <div className="id-card-contact-icon">🔗</div>
+                              <div className="id-card-contact-icon"><LinkedInIcon /></div>
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">LinkedIn</span>
                                 <span className="id-card-contact-value">
@@ -473,7 +394,7 @@ function App() {
                               </div>
                             </div>
                             <div className="id-card-contact-row">
-                              <div className="id-card-contact-icon">🐙</div>
+                              <div className="id-card-contact-icon"><GitHubIcon /></div>
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">GitHub</span>
                                 <span className="id-card-contact-value">
@@ -482,7 +403,7 @@ function App() {
                               </div>
                             </div>
                             <div className="id-card-contact-row">
-                              <div className="id-card-contact-icon">📊</div>
+                              <div className="id-card-contact-icon"><KaggleIcon /></div>
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">Kaggle</span>
                                 <span className="id-card-contact-value">
@@ -524,14 +445,21 @@ function App() {
               <div className="glass-hud-card">
                 <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>About Me</h2>
                 <p className="text-secondary" style={{ marginBottom: '1.25rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
-                  I am a highly motivated student pursuing a BTech in Artificial Intelligence and Machine Learning at <b>Sreyas Institute of Engineering and Technology.</b>
+                  Hello there! I'm Vajhala Sai Nandu, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
                 </p>
-                <p className="text-secondary" style={{ fontSize: '1.05rem', marginBottom: '1.75rem', lineHeight: 1.6 }}>
-                  I'm passionate about emerging cognitive paradigms, actively constructing autonomous agent networks, real-time voice architectures, and high-dimensional semantic search engines.
-                </p>
-                <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-                  <span className="tag" style={{ color: 'var(--text-primary)' }}>OCI AI Foundations Associate</span>
-                  <span className="tag" style={{ color: 'var(--text-primary)' }}>Google Cloud AI Agent Engineer</span>
+                
+                <div className="about-highlights-list" style={{ marginBottom: '2rem' }}>
+                  {[
+                    "B.Tech CSE student specializing in AI & ML",
+                    "Competitive Programming & Problem Solving",
+                    "Machine Learning & GEN AI",
+                    "Open Source and Continuous Learning"
+                  ].map((hl, idx) => (
+                    <div key={idx} className="about-highlight-item">
+                      <span className="about-highlight-dot" />
+                      <span>{hl}</span>
+                    </div>
+                  ))}
                 </div>
 
                 <h3 style={{ marginBottom: '1rem', fontFamily: 'Space Grotesk', fontSize: '1.25rem' }}>Academic Path</h3>
@@ -565,7 +493,7 @@ function App() {
                       const label = cat === "all" ? "All" : cat === "ai-agents" ? "AI Agents" : cat === "data-science" ? "Data Science" : "Accessibility";
                       const isActive = filter === cat;
                       return (
-                        <button key={cat} className={`filter-btn ${isActive ? "active" : ""}`} onClick={() => setFilter(cat)}>
+                        <button key={cat} className={`filter-btn ${isActive ? "active" : ""}`} onClick={() => { setFilter(cat); setCurrentProjectIndex(0); setSlideDirection(0); }}>
                           {isActive && <motion.span layoutId="activeFilterPill" className="filter-active-pill" transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
                           {label}
                         </button>
@@ -586,7 +514,7 @@ function App() {
                     className="btn btn-premium-glow"
                     style={{
                       position: 'absolute',
-                      left: isMobile ? '-10px' : '-70px',
+                      left: isMobile ? '-10px' : '-22px',
                       top: '50%',
                       transform: 'translateY(-50%)',
                       borderRadius: '50%',
@@ -664,9 +592,9 @@ function App() {
                                   target="_blank"
                                   rel="noreferrer"
                                   className="btn btn-premium-glow"
-                                  style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem' }}
+                                  style={{ padding: '0.6rem 1.5rem', fontSize: '0.9rem', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
                                 >
-                                  💻 View Code
+                                  <Code size={16} /> View Code
                                 </a>
                                 <span style={{ fontSize: '0.82rem', color: 'var(--text-secondary)' }}>
                                   Project {currentProjectIndex + 1} of {filteredProjects.length}
@@ -688,7 +616,7 @@ function App() {
                     className="btn btn-premium-glow"
                     style={{
                       position: 'absolute',
-                      right: isMobile ? '-10px' : '-70px',
+                      right: isMobile ? '-10px' : '-22px',
                       top: '50%',
                       transform: 'translateY(-50%)',
                       borderRadius: '50%',
@@ -799,7 +727,9 @@ function App() {
 
                 <div className="skills-category-container" style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: '1.25rem' }}>
                   <div className="skills-category-box" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>🧠 AI/ML & Data Science</h3>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Brain size={18} style={{ color: 'var(--accent)' }} /> AI/ML &amp; Data Science
+                    </h3>
                     <div className="skills-grid-uiverse">
                       {[
                         { name: "Python", color: "#3776AB" },
@@ -838,7 +768,9 @@ function App() {
                   </div>
 
                   <div className="skills-category-box" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>⚡ Backends & Web</h3>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Zap size={18} style={{ color: 'var(--accent)' }} /> Backends &amp; Web
+                    </h3>
                     <div className="skills-grid-uiverse">
                       {[
                         { name: "FastAPI", color: "#009688" },
@@ -877,7 +809,9 @@ function App() {
                   </div>
 
                   <div className="skills-category-box" style={{ padding: '1.25rem' }}>
-                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem' }}>🗄️ Databases & Pipelines</h3>
+                    <h3 style={{ fontSize: '1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Database size={18} style={{ color: 'var(--accent)' }} /> Databases &amp; Pipelines
+                    </h3>
                     <div className="skills-grid-uiverse">
                       {[
                         { name: "PostgreSQL", color: "#4169E1" },
@@ -936,7 +870,7 @@ function App() {
                       <img src="https://brm-workforce.oracle.com/pdf/certview/images/OCI25AICFAV1.png" alt="Oracle" style={{ width: '100%' }} />
                     </div>
                     <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>OCI 2025 AI Foundations Associate</h3>
-                    <a href="https://catalog-education.oracle.com/pls/certview/sharebadge?id=7BE6ED30EE3083111B17C78B5EDF74C875F88216A2CE6EA4924CA511B0DD4AB5" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                    <a href="https://catalog-education.oracle.com/pls/certview/sharebadge?id=7BE6ED30EE3083111B17C78B5EDF74C875F88216A2CE6EA4924CA511B0DD4AB5" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><ShieldCheck size={14} /> Verify Badge</a>
                   </div>
 
                   <div className="credential-card google-card" style={{ padding: '1.5rem' }}>
@@ -944,7 +878,7 @@ function App() {
                       <img src="https://images.credly.com/images/000655a5-3837-4c38-b906-2eb9c059ab36/linkedin_thumb_blob" alt="Google" style={{ width: '100%' }} />
                     </div>
                     <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Engineer AI Agents with Agent Development Kit (ADK)</h3>
-                    <a href="https://www.credly.com/badges/4be3d2ac-f8bd-44ad-bcec-91d0d86c1ca9" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Badge</a>
+                    <a href="https://www.credly.com/badges/4be3d2ac-f8bd-44ad-bcec-91d0d86c1ca9" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><ShieldCheck size={14} /> Verify Badge</a>
                   </div>
 
                   <div className="credential-card deloitte-card" style={{ padding: '1.5rem' }}>
@@ -952,7 +886,7 @@ function App() {
                       <img src={deloitteSimImg} alt="Deloitte Certificate" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
                     </div>
                     <h3 style={{ fontSize: '1rem', marginTop: '1rem', fontFamily: 'Space Grotesk' }}>Deloitte Data Analytics Job Simulation</h3>
-                    <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%' }}>🛡️ Verify Certificate</a>
+                    <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="btn-neon-border" style={{ marginTop: '1.5rem', fontSize: '0.8rem', width: '100%', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}><ShieldCheck size={14} /> Verify Certificate</a>
                   </div>
                 </div>
               </div>
