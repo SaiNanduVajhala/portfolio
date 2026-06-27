@@ -326,7 +326,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 <button onClick={() => setActiveTab('projects')} className="mobile-btn-primary">
                   View Projects <ChevronRight size={18} />
                 </button>
-                <a href="./Sai_Nandu_Resume.pdf" download="Sai_Nandu_Resume.pdf" className="mobile-btn-secondary">
+                <a href="./Vajhala_Sai_Nandu_AI_ML_Engineer_Resume.pdf" download="Vajhala_Sai_Nandu_AI_ML_Engineer_Resume.pdf" className="mobile-btn-secondary">
                   <Download size={18} /> Download Resume
                 </a>
               </div>
