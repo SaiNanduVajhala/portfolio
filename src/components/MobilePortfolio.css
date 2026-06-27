@@ -655,14 +655,14 @@
   font-size: 0.85rem;
   color: var(--text-secondary);
   line-height: 1.5;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
 }
 
 .mobile-project-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
 }
 
 .mobile-project-tag {
@@ -881,3 +881,142 @@
   font-weight: 500;
   margin-top: 2px;
 }
+
+/* ── Premium Mobile Skills Panel (MSP) ── */
+.msp-wrapper {
+  background: rgba(22, 27, 38, 0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+[data-theme="light"] .msp-wrapper {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(215, 207, 206, 0.7);
+}
+
+.msp-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 18px 0;
+}
+
+.msp-header-icon {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.msp-header-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+/* Tab strip */
+.msp-tabs {
+  display: flex;
+  gap: 8px;
+  padding: 14px 18px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.msp-tabs::-webkit-scrollbar { display: none; }
+
+.msp-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: 'Space Grotesk', sans-serif;
+  border: 1.5px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.22s ease;
+  outline: none;
+}
+.msp-tab.msp-tab-active {
+  border-color: var(--tab-accent, var(--accent));
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--tab-accent, var(--accent)) 10%, var(--bg-tertiary));
+}
+
+/* Animated accent bar under tabs */
+.msp-accent-bar {
+  height: 2px;
+  border-radius: 2px;
+  margin: 12px 18px 0;
+  opacity: 0.55;
+  transition: background 0.3s ease;
+}
+
+/* Chips grid */
+.msp-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+  padding: 14px 18px 16px;
+}
+
+.msp-chip {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  font-family: 'Space Grotesk', sans-serif;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+  cursor: default;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+[data-theme="light"] .msp-chip {
+  background: rgba(0,0,0,0.04);
+}
+.msp-chip:hover {
+  border-color: color-mix(in srgb, var(--chip-color, var(--accent)) 55%, var(--border));
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 8%, var(--bg-tertiary));
+}
+
+.msp-chip-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+/* Footer */
+.msp-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px 14px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  font-family: 'Space Grotesk', sans-serif;
+  border-top: 1px solid var(--border);
+}
+
+.msp-footer-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  opacity: 0.75;
+  transition: background 0.3s ease;
+}
+

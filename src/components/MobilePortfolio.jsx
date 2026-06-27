@@ -1,24 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Home, 
-  Briefcase, 
-  Terminal as TerminalIcon, 
-  Mail, 
-  Sun, 
-  Moon, 
-  Download, 
+import {
+  Home,
+  Briefcase,
+  Terminal as TerminalIcon,
+  Mail,
+  Sun,
+  Moon,
+  Download,
   ExternalLink,
   MapPin,
   Clock,
   ChevronRight,
   Code,
-  Shield,
   Brain,
   Zap,
   Database
 } from 'lucide-react';
 import './MobilePortfolio.css';
+import Stack from './Stack';
+import deloitteSimImg from '../assets/deloitte_simulation.png';
 
 // Brand icons as inline SVGs since newer lucide-react versions deprecate/exclude them
 const GitHubIcon = ({ size = 14 }) => (
@@ -77,12 +78,119 @@ const projectsData = [
   }
 ];
 
+const SKILL_CATEGORIES = [
+  {
+    key: 'ai',
+    label: 'AI / ML',
+    Icon: Brain,
+    accent: '#EE4C2C',
+    skills: [
+      { name: 'Python', color: '#3776AB' },
+      { name: 'PyTorch', color: '#EE4C2C' },
+      { name: 'TensorFlow', color: '#FF6F00' },
+      { name: 'CrewAI', color: '#FF4B4B' },
+      { name: 'Scikit-Learn', color: '#F7931E' },
+      { name: 'NumPy', color: '#4BA3C3' },
+      { name: 'Pandas', color: '#6F42C1' },
+    ],
+  },
+  {
+    key: 'web',
+    label: 'Web / Backend',
+    Icon: Zap,
+    accent: '#61DAFB',
+    skills: [
+      { name: 'FastAPI', color: '#009688' },
+      { name: 'React.js', color: '#61DAFB' },
+      { name: 'Node.js', color: '#339933' },
+      { name: 'Django', color: '#44B78B' },
+      { name: 'JavaScript', color: '#F7DF1E' },
+      { name: 'HTML5/CSS3', color: '#E34F26' },
+    ],
+  },
+  {
+    key: 'db',
+    label: 'Databases',
+    Icon: Database,
+    accent: '#4169E1',
+    skills: [
+      { name: 'PostgreSQL', color: '#4169E1' },
+      { name: 'MongoDB', color: '#47A248' },
+      { name: 'MySQL', color: '#4479A1' },
+      { name: 'Supabase', color: '#3ECF8E' },
+      { name: 'Git & GitHub', color: '#F05032' },
+    ],
+  },
+];
+
+function MobileSkillsPanel() {
+  const [activeKey, setActiveKey] = useState('ai');
+  const activeCat = SKILL_CATEGORIES.find(c => c.key === activeKey);
+
+  return (
+    <div className="msp-wrapper">
+      {/* Header */}
+      <div className="msp-header">
+        <span className="msp-header-icon">{'</>'}</span>
+        <span className="msp-header-title">Technical Stack</span>
+      </div>
+
+      {/* Tab selector row */}
+      <div className="msp-tabs">
+        {SKILL_CATEGORIES.map(cat => (
+          <button
+            key={cat.key}
+            className={`msp-tab ${activeKey === cat.key ? 'msp-tab-active' : ''}`}
+            style={activeKey === cat.key ? { '--tab-accent': cat.accent } : {}}
+            onClick={() => setActiveKey(cat.key)}
+          >
+            <cat.Icon size={13} />
+            <span>{cat.label}</span>
+          </button>
+        ))}
+      </div>
+
+      {/* Active category accent bar */}
+      <div className="msp-accent-bar" style={{ background: activeCat.accent }} />
+
+      {/* Skill chips grid with stagger animation */}
+      <motion.div
+        key={activeKey}
+        className="msp-chips"
+        initial="hidden"
+        animate="visible"
+        variants={{ visible: { transition: { staggerChildren: 0.05 } } }}
+      >
+        {activeCat.skills.map((skill, i) => (
+          <motion.div
+            key={skill.name}
+            className="msp-chip"
+            style={{ '--chip-color': skill.color }}
+            variants={{
+              hidden: { opacity: 0, y: 12, scale: 0.88 },
+              visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 280, damping: 22 } }
+            }}
+            whileTap={{ scale: 0.94 }}
+          >
+            <span className="msp-chip-dot" style={{ background: skill.color }} />
+            {skill.name}
+          </motion.div>
+        ))}
+      </motion.div>
+
+      {/* Skill count footer */}
+      <div className="msp-footer">
+        <span>{activeCat.skills.length} skills in this category</span>
+        <span className="msp-footer-dot" style={{ background: activeCat.accent }} />
+      </div>
+    </div>
+  );
+}
+
 export default function MobilePortfolio({ theme, setTheme }) {
   const [activeTab, setActiveTab] = useState('home');
   const [cardFlipped, setCardFlipped] = useState(false);
-  const [projectIndex, setProjectIndex] = useState(0);
-  const [slideDirection, setSlideDirection] = useState(0);
-  
+
   // Terminal state
   const [terminalHistory, setTerminalHistory] = useState([
     { text: "System initialized. Welcome to Sai Nandu's portfolio CLI.", type: "system" },
@@ -155,32 +263,41 @@ export default function MobilePortfolio({ theme, setTheme }) {
     exit: { opacity: 0, x: -20, transition: { duration: 0.2 } }
   };
 
-  // Micro-animations for project cards sliding
-  const cardSlideVariants = {
-    enter: (direction) => ({
-      x: direction < 0 ? -120 : direction > 0 ? 120 : 0,
-      opacity: 0,
-      scale: 0.96
-    }),
-    center: {
-      x: 0,
-      opacity: 1,
-      scale: 1,
-      transition: {
-        duration: 0.25,
-        ease: [0.4, 0, 0.2, 1]
-      }
-    },
-    exit: (direction) => ({
-      x: direction < 0 ? 120 : direction > 0 ? -120 : 0,
-      opacity: 0,
-      scale: 0.96,
-      transition: {
-        duration: 0.22,
-        ease: [0.4, 0, 1, 1]
-      }
-    })
-  };
+
+  const stackCards = projectsData.map((project) => (
+    <div key={project.id} className="mobile-project-card" style={{ margin: 0, width: '100%', height: '100%' }}>
+      <div>
+        <span className="mobile-project-category">
+          {project.category}
+        </span>
+        <h3 className="mobile-project-title">
+          {project.title}
+        </h3>
+        <p className="mobile-project-desc">
+          {project.description}
+        </p>
+      </div>
+
+      <div>
+        <div className="mobile-project-tags">
+          {project.tags.map((tag, tagIdx) => (
+            <span key={tagIdx} className="mobile-project-tag">{tag}</span>
+          ))}
+        </div>
+
+        <a
+          href={project.github}
+          target="_blank"
+          rel="noreferrer"
+          className="mobile-btn-primary"
+          style={{ height: '44px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Code size={16} /> View Code
+        </a>
+      </div>
+    </div>
+  ));
 
   return (
     <div className="mobile-portfolio" data-theme={theme}>
@@ -193,7 +310,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
       <main className="mobile-content">
         <AnimatePresence mode="wait">
           {activeTab === 'home' && (
-            <motion.div 
+            <motion.div
               key="home"
               variants={slideVariants}
               initial="initial"
@@ -208,7 +325,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
 
               <span className="mobile-hero-role">AI/ML Engineer</span>
               <h1 className="mobile-hero-name">Sai Nandu Vajhala</h1>
-              
+
               <p className="mobile-hero-description">
                 Building intelligent agent networks, real-time voice systems, and cognitive automation.
               </p>
@@ -233,7 +350,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                       <span className="mobile-id-header-sub">AI/ML Engineering</span>
                     </div>
                     <div className="mobile-id-avatar">SN</div>
-                    
+
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flex: 1, marginTop: '20px', marginBottom: '10px' }}>
                       <span className="mobile-id-name">Sai Nandu Vajhala</span>
                       <span className="mobile-id-role">AI/ML Engineer</span>
@@ -254,7 +371,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                   {/* Back Face (Full contact rows like desktop) */}
                   <div className="mobile-id-face mobile-id-back" style={{ pointerEvents: cardFlipped ? 'auto' : 'none' }}>
                     <div>
-                      <h4 className="mobile-id-back-title"><Shield size={16} /> Contact Details</h4>
+                      <h4 className="mobile-id-back-title">Contact Details</h4>
                       <div className="mobile-id-contact-list">
                         <div className="mobile-id-contact-item">
                           <div className="mobile-id-contact-icon"><Mail size={14} /></div>
@@ -293,7 +410,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="mobile-id-back-footer">
                       <span>Open to opportunities</span>
                       <span style={{ width: '6px', height: '6px', backgroundColor: 'var(--accent)', borderRadius: '50%', boxShadow: '0 0 6px var(--accent)' }} />
@@ -305,7 +422,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
           )}
 
           {activeTab === 'projects' && (
-            <motion.div 
+            <motion.div
               key="projects"
               variants={slideVariants}
               initial="initial"
@@ -324,130 +441,25 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 <Briefcase size={20} className="text-accent" /> Featured Projects
               </div>
 
-              {/* Slider wrapper to overflow hide moving cards */}
-              <div style={{ width: '100%', overflow: 'hidden', borderRadius: '16px', marginBottom: '16px' }}>
-                <AnimatePresence mode="wait" custom={slideDirection}>
-                  {projectsData[projectIndex] && (
-                    <motion.div
-                      key={projectsData[projectIndex].id}
-                      custom={slideDirection}
-                      variants={cardSlideVariants}
-                      initial="enter"
-                      animate="center"
-                      exit="exit"
-                      className="mobile-project-card"
-                      style={{ margin: 0 }}
-                    >
-                      <div>
-                        <span className="mobile-project-category">
-                          {projectsData[projectIndex].category}
-                        </span>
-                        <h3 className="mobile-project-title">
-                          {projectsData[projectIndex].title}
-                        </h3>
-                        <p className="mobile-project-desc">
-                          {projectsData[projectIndex].description}
-                        </p>
-                      </div>
-
-                      <div>
-                        <div className="mobile-project-tags">
-                          {projectsData[projectIndex].tags.map((tag, idx) => (
-                            <span key={idx} className="mobile-project-tag">{tag}</span>
-                          ))}
-                        </div>
-
-                        <a 
-                          href={projectsData[projectIndex].github}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="mobile-btn-primary"
-                          style={{ height: '44px' }}
-                        >
-                          <Code size={16} /> View Code
-                        </a>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+              {/* React Bits Stack Slider component */}
+              <div style={{ width: '100%', height: '420px', marginTop: '1rem', marginBottom: '1rem' }}>
+                <Stack
+                  randomRotation={true}
+                  sensitivity={140}
+                  sendToBackOnClick={true}
+                  cards={stackCards}
+                />
               </div>
 
-              {/* Carousel Indicators & Side Arrow Navigation Controls */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', margin: '4px 0 16px 0' }}>
-                {/* Left Arrow Button */}
-                <motion.button
-                  whileTap={{ scale: 0.85 }}
-                  onClick={() => {
-                    setSlideDirection(-1);
-                    setProjectIndex((prev) => (prev === 0 ? projectsData.length - 1 : prev - 1));
-                  }}
-                  style={{
-                    borderRadius: '50%',
-                    width: '38px',
-                    height: '38px',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    boxShadow: 'var(--shadow-sm)'
-                  }}
-                  aria-label="Previous project"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M15 18l-6-6 6-6" /></svg>
-                </motion.button>
-
-                {/* Dots indicator */}
-                <div className="mobile-carousel-dots" style={{ margin: 0 }}>
-                  {projectsData.map((_, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => {
-                        setSlideDirection(idx > projectIndex ? 1 : -1);
-                        setProjectIndex(idx);
-                      }}
-                      className={`mobile-carousel-dot ${idx === projectIndex ? 'mobile-carousel-dot-active' : ''}`}
-                      aria-label={`Go to project ${idx + 1}`}
-                    />
-                  ))}
-                </div>
-
-                {/* Right Arrow Button */}
-                <motion.button
-                  whileTap={{ scale: 0.85 }}
-                  onClick={() => {
-                    setSlideDirection(1);
-                    setProjectIndex((prev) => (prev === projectsData.length - 1 ? 0 : prev + 1));
-                  }}
-                  style={{
-                    borderRadius: '50%',
-                    width: '38px',
-                    height: '38px',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    border: '1px solid var(--border)',
-                    background: 'var(--bg-secondary)',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer',
-                    outline: 'none',
-                    boxShadow: 'var(--shadow-sm)'
-                  }}
-                  aria-label="Next project"
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'block' }}><path d="M9 18l6-6-6-6" /></svg>
-                </motion.button>
+              {/* Stack Hint Guide */}
+              <div style={{ textAlign: 'center', fontSize: '0.85rem', color: 'var(--text-secondary)', marginTop: '0.75rem', fontFamily: 'Space Grotesk' }}>
+                Swipe or tap cards to cycle through projects
               </div>
             </motion.div>
           )}
 
           {activeTab === 'skills' && (
-            <motion.div 
+            <motion.div
               key="skills"
               variants={slideVariants}
               initial="initial"
@@ -465,9 +477,9 @@ export default function MobilePortfolio({ theme, setTheme }) {
               <div className="mobile-card">
                 <h3 className="mobile-section-title">About Me</h3>
                 <p className="mobile-about-text">
-                  Hello there! I'm Vajhala Sai Nandu, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
+                  Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
                 </p>
-                
+
                 <div className="about-highlights-list" style={{ margin: '1.25rem 0' }}>
                   {[
                     "B.Tech CSE student specializing in AI & ML",
@@ -487,73 +499,8 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </div>
               </div>
 
-              {/* Skills group card */}
-              <div className="mobile-card">
-                <h3 className="mobile-section-title"><Code size={20} className="text-accent" /> Technical Stack</h3>
-                
-                <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Brain size={14} className="text-accent" /> AI/ML &amp; Data Science
-                  </div>
-                  <div className="mobile-skill-grid">
-                    {[
-                      { name: "Python", color: "#3776AB" },
-                      { name: "PyTorch", color: "#EE4C2C" },
-                      { name: "TensorFlow", color: "#FF6F00" },
-                      { name: "CrewAI", color: "#FF4B4B" },
-                      { name: "Scikit-Learn", color: "#F7931E" },
-                      { name: "NumPy", color: "#013243" },
-                      { name: "Pandas", color: "#150458" }
-                    ].map((s, i) => (
-                      <span key={i} className="mobile-skill-tag">
-                        <span className="mobile-skill-dot" style={{ backgroundColor: s.color }} />
-                        {s.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Zap size={14} className="text-accent" /> Backend &amp; Web
-                  </div>
-                  <div className="mobile-skill-grid">
-                    {[
-                      { name: "FastAPI", color: "#009688" },
-                      { name: "React.js", color: "#61DAFB" },
-                      { name: "Node.js", color: "#339933" },
-                      { name: "Django", color: "#092E20" },
-                      { name: "JavaScript", color: "#F7DF1E" },
-                      { name: "HTML5/CSS3", color: "#E34F26" }
-                    ].map((s, i) => (
-                      <span key={i} className="mobile-skill-tag">
-                        <span className="mobile-skill-dot" style={{ backgroundColor: s.color }} />
-                        {s.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="mobile-skill-group">
-                  <div className="mobile-skill-group-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Database size={14} className="text-accent" /> Databases &amp; DevOps
-                  </div>
-                  <div className="mobile-skill-grid">
-                    {[
-                      { name: "PostgreSQL", color: "#4169E1" },
-                      { name: "MongoDB", color: "#47A248" },
-                      { name: "MySQL", color: "#4479A1" },
-                      { name: "Supabase", color: "#3ECF8E" },
-                      { name: "Git & GitHub", color: "#F05032" }
-                    ].map((s, i) => (
-                      <span key={i} className="mobile-skill-tag">
-                        <span className="mobile-skill-dot" style={{ backgroundColor: s.color }} />
-                        {s.name}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              {/* Skills group card — Premium */}
+              <MobileSkillsPanel />
 
               {/* Verified badges */}
               <div className="mobile-card">
@@ -578,6 +525,16 @@ export default function MobilePortfolio({ theme, setTheme }) {
                       <div className="mobile-credential-title">Google Cloud ADK Agent Engineer</div>
                       <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Credly Verified</span>
                     </div>
+                  </a>
+
+                  <a href="https://www.linkedin.com/posts/vajhala-sai-nandu_data-analytics-job-simulation-activity-7466083854416707585-ODuA?utm_source=share&utm_medium=member_desktop&rcm=ACoAAFz19TIBtJJGw5Sx8AlQ19C-4c5UcVpjRww" target="_blank" rel="noreferrer" className="mobile-credential-item">
+                    <div className="mobile-credential-badge">
+                      <img src={deloitteSimImg} alt="Deloitte Badge" style={{ height: '36px', objectFit: 'contain' }} />
+                    </div>
+                    <div className="mobile-credential-info">
+                      <div className="mobile-credential-title">Deloitte Data Analytics Simulation</div>
+                      <span style={{ fontSize: '0.65rem', color: 'var(--text-secondary)' }}>Forage Job Simulation</span>
+                    </div>
                     <ExternalLink size={14} className="text-secondary" />
                   </a>
                 </div>
@@ -586,7 +543,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
           )}
 
           {activeTab === 'sandbox' && (
-            <motion.div 
+            <motion.div
               key="sandbox"
               variants={slideVariants}
               initial="initial"
@@ -622,14 +579,14 @@ export default function MobilePortfolio({ theme, setTheme }) {
                       {item.text}
                     </div>
                   ))}
-                  
+
                   <form onSubmit={onFormSubmit} className="mobile-terminal-prompt-line">
                     <span className="mobile-terminal-prompt">sainandu:~$</span>
                     <div className="mobile-terminal-input-wrapper">
-                      <input 
-                        type="text" 
-                        value={terminalInput} 
-                        onChange={handleInputChange} 
+                      <input
+                        type="text"
+                        value={terminalInput}
+                        onChange={handleInputChange}
                         className="mobile-terminal-input"
                         autoCapitalize="none"
                         autoComplete="off"
@@ -644,7 +601,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
               {/* Quick Pills for Mobile CLI Shortcuts */}
               <div className="mobile-cli-shortcuts">
                 {["help", "about", "projects", "skills", "clear"].map((cmd) => (
-                  <button 
+                  <button
                     key={cmd}
                     onClick={() => handleTerminalSubmit(cmd)}
                     className="mobile-cli-pill"
@@ -657,7 +614,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
           )}
 
           {activeTab === 'contact' && (
-            <motion.div 
+            <motion.div
               key="contact"
               variants={slideVariants}
               initial="initial"
@@ -682,7 +639,7 @@ export default function MobilePortfolio({ theme, setTheme }) {
                 </p>
               </div>
 
-              <a href="mailto:vajhalasainandu@gmail.com" className="mobile-contact-card">
+              <a href="https://mail.google.com/mail/?view=cm&to=vajhalasainandu@gmail.com" target="_blank" rel="noreferrer" className="mobile-contact-card">
                 <div className="mobile-contact-icon-wrapper" style={{ background: 'rgba(23, 178, 106, 0.12)' }}>
                   <Mail size={20} className="text-accent" />
                 </div>
@@ -741,40 +698,40 @@ export default function MobilePortfolio({ theme, setTheme }) {
 
       {/* Floating Bottom Nav Bar */}
       <nav className="mobile-navbar">
-        <button 
-          onClick={() => setActiveTab('home')} 
+        <button
+          onClick={() => setActiveTab('home')}
           className={`mobile-nav-item ${activeTab === 'home' ? 'mobile-nav-item-active' : ''}`}
         >
           <Home size={20} />
           <span>Home</span>
           {activeTab === 'home' && <motion.div layoutId="navDot" className="mobile-nav-dot" />}
         </button>
-        <button 
-          onClick={() => setActiveTab('projects')} 
+        <button
+          onClick={() => setActiveTab('projects')}
           className={`mobile-nav-item ${activeTab === 'projects' ? 'mobile-nav-item-active' : ''}`}
         >
           <Briefcase size={20} />
           <span>Projects</span>
           {activeTab === 'projects' && <motion.div layoutId="navDot" className="mobile-nav-dot" />}
         </button>
-        <button 
-          onClick={() => setActiveTab('skills')} 
+        <button
+          onClick={() => setActiveTab('skills')}
           className={`mobile-nav-item ${activeTab === 'skills' ? 'mobile-nav-item-active' : ''}`}
         >
           <Code size={20} />
           <span>Skills</span>
           {activeTab === 'skills' && <motion.div layoutId="navDot" className="mobile-nav-dot" />}
         </button>
-        <button 
-          onClick={() => setActiveTab('sandbox')} 
+        <button
+          onClick={() => setActiveTab('sandbox')}
           className={`mobile-nav-item ${activeTab === 'sandbox' ? 'mobile-nav-item-active' : ''}`}
         >
           <TerminalIcon size={20} />
           <span>CLI</span>
           {activeTab === 'sandbox' && <motion.div layoutId="navDot" className="mobile-nav-dot" />}
         </button>
-        <button 
-          onClick={() => setActiveTab('contact')} 
+        <button
+          onClick={() => setActiveTab('contact')}
           className={`mobile-nav-item ${activeTab === 'contact' ? 'mobile-nav-item-active' : ''}`}
         >
           <Mail size={20} />

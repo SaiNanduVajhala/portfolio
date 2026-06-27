@@ -373,7 +373,7 @@ function App() {
                               <div className="id-card-contact-info">
                                 <span className="id-card-contact-label">Email</span>
                                 <span className="id-card-contact-value">
-                                  <a href="mailto:vajhalasainandu@gmail.com">vajhalasainandu@gmail.com</a>
+                                  <a href="https://mail.google.com/mail/?view=cm&to=vajhalasainandu@gmail.com" target="_blank" rel="noreferrer">vajhalasainandu@gmail.com</a>
                                 </span>
                               </div>
                             </div>
@@ -445,9 +445,9 @@ function App() {
               <div className="glass-hud-card">
                 <h2 className="heading-md" style={{ marginBottom: '1.25rem', fontSize: '2rem' }}>About Me</h2>
                 <p className="text-secondary" style={{ marginBottom: '1.25rem', fontSize: '1.05rem', lineHeight: 1.6 }}>
-                  Hello there! I'm Vajhala Sai Nandu, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
+                  Hello there! <b>I'm Vajhala Sai Nandu</b>, a B.Tech Computer Science student specializing in AI and Machine Learning, with a strong foundation in competitive programming and algorithmic problem-solving. My technical focus centers on building practical GenAI applications. I am deeply passionate about open-source contribution and continuously adapting to modern developer tools.
                 </p>
-                
+
                 <div className="about-highlights-list" style={{ marginBottom: '2rem' }}>
                   {[
                     "B.Tech CSE student specializing in AI & ML",
@@ -924,7 +924,7 @@ function App() {
                 <div className="contact-grid">
                   {/* Left: Info cards */}
                   <div className="contact-info-column">
-                    <a href="mailto:vajhalasainandu@gmail.com" className="contact-info-card" style={{ textDecoration: 'none' }}>
+                    <a href="https://mail.google.com/mail/?view=cm&to=vajhalasainandu@gmail.com" target="_blank" rel="noreferrer" className="contact-info-card" style={{ textDecoration: 'none' }}>
                       <div className="contact-icon-wrap" style={{ background: 'rgba(23, 178, 106, 0.12)' }}>
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#17B26A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" /></svg>
                       </div>
