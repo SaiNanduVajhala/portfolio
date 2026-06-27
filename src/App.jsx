@@ -258,7 +258,10 @@ function App() {
     <>
       {/* 1. Main Portfolio (loaded in parallel in background) */}
       {isMobile ? (
-        <MobilePortfolio theme={theme} setTheme={setTheme} />
+        <>
+          <div className="mobile-fixed-bg" />
+          <MobilePortfolio theme={theme} setTheme={setTheme} />
+        </>
       ) : (
         <div style={{ width: '100%', height: '100%' }}>
           {/* 1. Ultra-Premium Glassmorphic HUD Navbar */}
