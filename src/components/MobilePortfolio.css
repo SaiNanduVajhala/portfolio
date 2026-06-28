@@ -630,9 +630,7 @@
 }
 
 .mobile-project-card {
-  background: rgba(10, 10, 10, 0.75);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(15, 18, 25, 0.98);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
