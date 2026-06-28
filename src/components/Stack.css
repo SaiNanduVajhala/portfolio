@@ -35,7 +35,17 @@
   justify-content: center;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  transform: translateZ(0);
+  transform: translate3d(0, 0, 0);
+  will-change: transform;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Hide content of 3rd card and below in the stack to optimize performance and prevent deep bleed-through */
+.stack-card.is-under .mobile-project-card * {
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 .stack-card img {

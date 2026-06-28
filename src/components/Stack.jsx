@@ -108,7 +108,9 @@ export default function Stack({
       onMouseLeave={() => pauseOnHover && setIsPaused(false)}
     >
       {stack.map((card, index) => {
-        const randomRotate = randomRotation ? Math.random() * 10 - 5 : 0;
+        // Use a stable, deterministic pseudo-random rotation based on card.id to prevent jitter and render lag
+        const stableRandom = Math.abs(Math.sin(card.id) * 10000) % 1;
+        const randomRotate = randomRotation ? stableRandom * 10 - 5 : 0;
         return (
           <CardRotate
             key={card.id}
@@ -117,7 +119,7 @@ export default function Stack({
             disableDrag={shouldDisableDrag}
           >
             <motion.div
-              className="stack-card"
+              className={`stack-card ${index === stack.length - 1 ? 'is-top' : index === stack.length - 2 ? 'is-next' : 'is-under'}`}
               onClick={() => shouldEnableClick && sendToBack(card.id)}
               animate={{
                 rotateZ: index === stack.length - 1 ? 0 : (stack.length - index - 1) * 4 + randomRotate,

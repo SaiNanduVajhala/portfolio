@@ -630,7 +630,9 @@
 }
 
 .mobile-project-card {
-  background: rgba(15, 18, 25, 0.98);
+  background: rgba(10, 10, 10, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 20px;
@@ -640,6 +642,9 @@
   min-height: 320px;
   box-shadow: var(--shadow-md);
   margin-bottom: 16px;
+  will-change: transform;
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 [data-theme="light"] .mobile-project-card {
